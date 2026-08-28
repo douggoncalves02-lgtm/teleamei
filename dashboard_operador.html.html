@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Meu Desempenho - TeleAmei</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body class="bg-gray-100 min-h-screen p-8">
+    
+    <!-- BARRA DE NAVEGAÇÃO -->
+    <div class="max-w-7xl mx-auto flex justify-between items-center mb-6 bg-indigo-900 text-white p-4 rounded-lg shadow">
+        <div class="font-bold text-lg">TeleAmei 💙 | Meu Desempenho</div>
+        <div class="flex items-center space-x-4">
+            <span class="text-sm">Operador(a): <strong id="usuarioLogadoNome">Carregando...</strong></span>
+            <button onclick="window.location.href='crm_operacoes.html'" class="bg-indigo-600 hover:bg-indigo-700 px-3 py-1 rounded text-sm font-bold shadow">Ir para CRM</button>
+            <button onclick="fazerLogout()" class="bg-red-500 hover:bg-red-600 px-3 py-1 rounded text-sm font-bold shadow transition">Sair</button>
+        </div>
+    </div>
+
+    <div class="max-w-7xl mx-auto">
+        <div class="mb-6 flex justify-between items-center">
+            <div>
+                <h1 class="text-2xl font-bold text-indigo-900">Produtividade Individual (Mês Atual)</h1>
+                <p class="text-sm text-gray-500">Acompanhe seus resultados e compare com a média da equipe Operacional.</p>
+            </div>
+        </div>
+
+        <!-- GRID DE INDICADORES GAMIFICADOS -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="painelKpis">
+            <div class="col-span-full text-center py-12 text-indigo-600 font-bold">Processando algoritmos de desempenho...</div>
+        </div>
+    </div>
+
+    <script>
+        const URL_API = "https://script.google.com/macros/s/AKfycby-1WKshFbFVNfQliUY65_krsep0MnR3HEi6JlYEUG7mSiPVHIwPwRdIlSVnXbVFVQm/exec";
+        let usuarioLogado = null;
+
+        function validarAcesso() {
+            const sessao = localStorage.getItem("teleamei_sessao");
+            if (!sessao) {
+                window.location.href = "login.html";
+                return;
+            }
+            usuarioLogado = JSON.parse(sessao);
+            
+            if (usuarioLogado.perfil === "Medico") {
+                alert("Acesso restrito.");
+                window.location.href = "login.html";
+                return;
+            }
+
+            document.getElementById('usuarioLogadoNome').innerText = usuarioLogado.nome;
+            carregarDadosBI();
+        }
+
+        function fazerLogout() {
+            localStorage.removeItem("teleamei_sessao");
+            window.location.href = "login.html";
+        }
+
+        function carregarDadosBI() {
+            fetch(URL_API)
+                .then(res => res.json())
+                .then(res => {
+                    if (res.status === "sucesso") {
+                        processarGamificacao(res.dados);
+                    }
+                })
+                .catch(err => console.error("Erro ao carregar dados:", err));
+        }
+
+        function processarGamificacao(dados) {
+            const mesAtual = new Date().getMonth();
+            const anoAtual = new Date().getFullYear();
+
+            // Dicionário para somar a produtividade de CADA operador separadamente
+            const produtividadeEquipe = {};
+
+            // 1. FILTRO E AGRUPAMENTO DOS DADOS DO MÊS
+            dados.forEach(item => {
+                if (!item.Data_Registro) return;
+                
+                const dataItem = new Date(item.Data_Registro);
+                if (dataItem.getMonth() !== mesAtual || dataItem.getFullYear() !== anoAtual) return; // Ignora meses antigos
+
+                const operador = (item.Operador_Responsavel || item["Operador Responsavel"] || "Sistema").trim();
+                if (operador === "Sistema" || operador === "") return; // Ignora demandas sem dono
+
+                // Cria o "caixa" do operador se não existir
+                if (!produtividadeEquipe[operador]) {
+                    produtividadeEquipe[operador] = {
+                        iniciados: 0,
+                        concluidos: 0,
+                        faltas: 0,
+                        examesEnviados: 0,
+                        examesConcluidos: 0
+                    };
+                }
+
+                const status = (item.Status_Consulta || "pendente").toLowerCase();
+                const valorExames = parseFloat(item.Total_Exames) || 0;
+
+                // Incrementa os KPIs
+                produtividadeEquipe[operador].iniciados += 1;
+                
+                if (status === 'sim') {
+                    produtividadeEquipe[operador].concluidos += 1;
+                    produtividadeEquipe[operador].examesConcluidos += valorExames;
+                } else if (status === 'nao') {
+                    produtividadeEquipe[operador].faltas += 1;
+                }
+
+                produtividadeEquipe[operador].examesEnviados += valorExames;
+            });
+
+            // 2. ISOLANDO O USUÁRIO VS O RESTO DA EQUIPE
+            const meusDados = produtividadeEquipe[usuarioLogado.nome] || {
+                iniciados: 0, concluidos: 0, faltas: 0, examesEnviados: 0, examesConcluidos: 0
+            };
+
+            let somatoriaOutros = { iniciados: 0, concluidos: 0, faltas: 0, examesEnviados: 0, examesConcluidos: 0 };
+            let qtdOutrosOperadores = 0;
+
+            Object.keys(produtividadeEquipe).forEach(nomeOperador => {
+                if (nomeOperador !== usuarioLogado.nome) {
+                    qtdOutrosOperadores += 1;
+                    somatoriaOutros.iniciados += produtividadeEquipe[nomeOperador].iniciados;
+                    somatoriaOutros.concluidos += produtividadeEquipe[nomeOperador].concluidos;
+                    somatoriaOutros.faltas += produtividadeEquipe[nomeOperador].faltas;
+                    somatoriaOutros.examesEnviados += produtividadeEquipe[nomeOperador].examesEnviados;
+                    somatoriaOutros.examesConcluidos += produtividadeEquipe[nomeOperador].examesConcluidos;
+                }
+            });
+
+            // 3. CÁLCULO DA MÉDIA DA EQUIPE
+            const divisor = qtdOutrosOperadores > 0 ? qtdOutrosOperadores : 1; // Evita divisão por zero se ele for o único
+            const mediaEquipe = {
+                iniciados: somatoriaOutros.iniciados / divisor,
+                concluidos: somatoriaOutros.concluidos / divisor,
+                faltas: somatoriaOutros.faltas / divisor,
+                examesEnviados: somatoriaOutros.examesEnviados / divisor,
+                examesConcluidos: somatoriaOutros.examesConcluidos / divisor
+            };
+
+            // 4. RENDERIZAÇÃO DOS CARDS (GAMIFICAÇÃO)
+            const painel = document.getElementById('painelKpis');
+            painel.innerHTML = "";
+
+            painel.innerHTML += criarCardGamificado("Atendimentos Assumidos", meusDados.iniciados, mediaEquipe.iniciados, false);
+            painel.innerHTML += criarCardGamificado("Consultas Concluídas", meusDados.concluidos, mediaEquipe.concluidos, false);
+            painel.innerHTML += criarCardGamificado("Faltas / Não Compareceram", meusDados.faltas, mediaEquipe.faltas, true); // Faltas: menor é melhor
+            painel.innerHTML += criarCardGamificado("Orçamento Exames Enviados", meusDados.examesEnviados, mediaEquipe.examesEnviados, false, true);
+            painel.innerHTML += criarCardGamificado("Orçamento Exames Fechados", meusDados.examesConcluidos, mediaEquipe.examesConcluidos, false, true);
+        }
+
+        // Função construtora visual (Cria o Card verde/vermelho comparativo)
+        function criarCardGamificado(titulo, meuValor, mediaEquipe, menorEhMelhor = false, eDinheiro = false) {
+            
+            let formatar = (v) => eDinheiro ? `R$ ${v.toFixed(2)}` : Math.round(v);
+            
+            let statusCor = "text-gray-500";
+            let icone = "➖";
+            let frase = "Na média";
+
+            // Lógica de "Ganhar" da média
+            let batiAMeta = meuValor > mediaEquipe;
+            if (menorEhMelhor) batiAMeta = meuValor < mediaEquipe; // Exceção para Faltas (quanto menor, melhor)
+
+            if (meuValor !== mediaEquipe) {
+                if (batiAMeta) {
+                    statusCor = "text-green-600 bg-green-100";
+                    icone = "🏆";
+                    frase = menorEhMelhor ? "Abaixo da média (Excelente)" : "Acima da média da equipe!";
+                } else {
+                    statusCor = "text-red-600 bg-red-100";
+                    icone = "⚠️";
+                    frase = menorEhMelhor ? "Acima da média (Atenção)" : "Abaixo da média da equipe.";
+                }
+            }
+
+            // Se for o único operador no sistema, esconde a competição
+            if (mediaEquipe === 0 && meuValor === 0) frase = "Sem dados para comparar";
+
+            return `
+                <div class="bg-white p-6 rounded-xl shadow-md border-l-4 border-indigo-500 hover:shadow-lg transition">
+                    <h3 class="text-gray-500 text-sm font-bold uppercase mb-2">${titulo}</h3>
+                    <div class="flex items-end space-x-2">
+                        <p class="text-4xl font-black text-indigo-900">${formatar(meuValor)}</p>
+                    </div>
+                    
+                    <div class="mt-4 pt-4 border-t border-gray-100">
+                        <div class="flex justify-between items-center text-sm">
+                            <span class="text-gray-500">Média da Equipe: <strong>${formatar(mediaEquipe)}</strong></span>
+                        </div>
+                        <div class="mt-2 inline-block px-2 py-1 rounded-md text-xs font-bold ${statusCor}">
+                            ${icone} ${frase}
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        window.onload = validarAcesso;
+    </script>
+</body>
+</html>

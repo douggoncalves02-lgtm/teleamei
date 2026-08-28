@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Prontuário - TeleAmei</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 min-h-screen p-8">
+    
+    <!-- BARRA DE NAVEGAÇÃO SUPERIOR -->
+    <div class="max-w-6xl mx-auto flex justify-between items-center mb-4 bg-indigo-900 text-white p-4 rounded-lg shadow">
+        <div class="font-bold text-lg">TeleAmei 💙 | Ficha do Paciente</div>
+        <div class="flex items-center space-x-3">
+            <span class="text-sm">Logado como: <strong id="usuarioLogadoNome">Carregando...</strong> (<span id="usuarioLogadoPerfil" class="text-indigo-200"></span>)</span>
+            
+            <!-- ATALHOS DE DASHBOARD PARA ADMIN E OPERAÇÃO -->
+            <button id="btnBIAdminNav" onclick="window.location.href='dashboard.html'" class="hidden bg-purple-600 hover:bg-purple-700 px-3 py-1 rounded text-sm font-bold shadow transition">📊 Analytics BI</button>
+            <button id="btnDesempenhoNav" onclick="window.location.href='dashboard_operador.html'" class="hidden bg-indigo-600 hover:bg-indigo-700 px-3 py-1 rounded text-sm font-bold shadow transition">Meu Desempenho</button>
+
+            <button onclick="voltarPainel()" class="bg-indigo-500 hover:bg-indigo-600 px-3 py-1 rounded text-sm font-bold shadow transition">Voltar</button>
+            <button onclick="fazerLogout()" class="bg-red-500 hover:bg-red-600 px-3 py-1 rounded text-sm font-bold shadow transition">Sair</button>
+        </div>
+    </div>
+
+    <div class="max-w-6xl mx-auto bg-white p-8 rounded-xl shadow-lg border-t-4 border-blue-800">
+        
+        <div class="flex justify-between items-center mb-6">
+            <h1 class="text-2xl font-bold text-blue-800">Prontuário Eletrônico</h1>
+            
+            <div id="botoesOmnichannel" class="flex space-x-2">
+                <div id="botoesOperacao" class="hidden flex space-x-2">
+                    <button type="button" onclick="dispararWhatsApp('confirmacao')" class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded text-sm font-bold shadow transition flex items-center">
+                        💬 Confirmar Agenda
+                    </button>
+                    <button type="button" onclick="dispararWhatsApp('orcamento')" class="bg-teal-600 hover:bg-teal-700 text-white px-4 py-2 rounded text-sm font-bold shadow transition flex items-center">
+                        📄 Enviar Orçamento
+                    </button>
+                </div>
+                <div id="botoesMedico" class="hidden flex space-x-2">
+                    <button type="button" onclick="dispararWhatsApp('documentos')" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded text-sm font-bold shadow transition flex items-center">
+                        🩺 Enviar Documentos / Exames
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <form class="space-y-6" id="formAdmin">
+            
+            <div class="grid grid-cols-2 md:grid-cols-3 gap-4 bg-gray-50 p-4 rounded-lg border border-gray-200">
+                <div><label class="block text-sm font-medium text-gray-700">Paciente</label><input type="text" id="nomePaciente" class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md bg-white"></div>
+                <div><label class="block text-sm font-medium text-gray-700">Telefone / WhatsApp</label><input type="text" id="telefonePaciente" placeholder="(11) 99999-9999" class="mt-1 block w-full px-4 py-2 border border-green-300 rounded-md bg-white focus:ring-green-500"></div>
+                <div><label class="block text-sm font-medium text-gray-700">Especialidade Agendada</label><input type="text" id="especialidadeAgendada" class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md bg-white"></div>
+                
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">Unidade de Atendimento</label>
+                    <select id="unidadeAtendimento" class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md">
+                        <option value="">Selecione...</option><option value="Barretos">Barretos</option><option value="Bebedouro">Bebedouro</option><option value="Camaragibe">Camaragibe</option><option value="Campinas Noroeste">Campinas Noroeste</option><option value="Campinas Sudoeste">Campinas Sudoeste</option><option value="Cotia">Cotia</option><option value="Sumaré">Sumaré</option>
+                    </select>
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">Médico Responsável</label>
+                    <select id="medicoResponsavel" onchange="sincronizarFinanceiro()" class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md bg-white border-blue-400 shadow-sm">
+                        <option value="">Carregando médicos...</option>
+                    </select>
+                </div>
+                
+                <div><label class="block text-sm font-medium text-gray-700">Link Google Meet</label><input type="url" placeholder="https://meet.google.com/..." class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md"></div>
+            </div>
+
+            <div class="grid grid-cols-3 gap-4" id="blocoPreConsulta">
+                <div><label class="block text-sm font-medium text-gray-700">Valor da Consulta (R$)</label><input type="number" id="valorConsulta" oninput="sincronizarFinanceiro()" placeholder="150.00" class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md"></div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">Voucher Cartão de Todos?</label>
+                    <select class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md">
+                        <option>Não</option><option>Sim</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">Cliente Confirmou?</label>
+                    <select class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md">
+                        <option>Aguardando</option><option>Sim</option><option>Não</option>
+                    </select>
+                </div>
+            </div>
+
+            <hr class="border-gray-200">
+
+            <div class="bg-blue-50 p-4 rounded-lg">
+                <label class="block text-sm font-medium text-blue-900 mb-2">A consulta foi realizada?</label>
+                <select id="statusConsulta" onchange="verificarRegras()" class="block w-full px-4 py-2 border border-blue-300 rounded-md">
+                    <option value="pendente">Selecione...</option>
+                    <option value="sim">Sim, realizada</option>
+                    <option value="nao">Não realizada</option>
+                </select>
+            </div>
+            
+            <div id="campoReagendar" class="hidden bg-red-50 p-4 rounded-lg border border-red-200">
+                <label class="block text-sm font-medium text-red-900 mb-2">Reagendar Consulta?</label>
+                <select id="querReagendar" onchange="verificarRegras()" class="block w-full px-4 py-2 border border-red-300 rounded-md">
+                    <option value="nao">Não</option><option value="sim">Sim</option>
+                </select>
+                <div id="dadosReagendamento" class="hidden grid grid-cols-3 gap-4 mt-4">
+                    <div><label class="block text-sm font-medium text-red-900">Nova Data</label><input type="date" class="mt-1 block w-full px-4 py-2 border border-red-300 rounded-md"></div>
+                    <div><label class="block text-sm font-medium text-red-900">Novo Horário</label><input type="time" class="mt-1 block w-full px-4 py-2 border border-red-300 rounded-md"></div>
+                    <div><label class="block text-sm font-medium text-red-900">Novo Link Meet</label><input type="url" class="mt-1 block w-full px-4 py-2 border border-red-300 rounded-md"></div>
+                </div>
+            </div>
+
+            <div id="campoExame" class="hidden bg-green-50 p-4 rounded-lg border border-green-200">
+                <label class="block text-sm font-medium text-green-900 mb-2">Foram solicitados procedimentos/exames / atestados?</label>
+                <select id="teveExame" onchange="verificarRegras()" class="block w-full px-4 py-2 border border-green-300 rounded-md mb-4">
+                    <option value="nao">Não</option><option value="sim">Sim</option>
+                </select>
+
+                <div id="examesRealizadosDiv" class="hidden border-t border-green-300 pt-4 space-y-4">
+                    
+                    <div id="divAnexoExistente" class="hidden p-4 bg-blue-50 border border-blue-200 rounded-md">
+                        <span class="block text-sm text-blue-900 font-bold mb-3">📄 Documentos Salvos no Sistema:</span>
+                        <div id="listaAnexosExistentes" class="flex flex-wrap"></div>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-green-900">Anexar Pedido Médico, Receita ou Atestado (Pode selecionar vários)</label>
+                        <input type="file" id="anexoPedido" multiple class="mt-1 block w-full bg-white p-2 border border-green-200 rounded cursor-pointer">
+                        <p class="text-xs text-green-700 mt-1">* Segure a tecla CTRL para selecionar múltiplos arquivos. Depois clique em Salvar Prontuário.</p>
+                    </div>
+
+                    <div id="blocoOrcamentoExames" class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-green-900 mb-2">Já foi agendada data para os exames?</label>
+                            <select id="agendouExame" onchange="verificarRegras()" class="block w-full px-4 py-2 border border-green-300 rounded-md">
+                                <option value="nao">Não</option><option value="sim">Sim</option>
+                            </select>
+                        </div>
+                        <div id="campoDataExame" class="hidden">
+                            <label class="block text-sm font-medium text-green-900 mb-2">Qual a data?</label>
+                            <input type="date" class="block w-full px-4 py-2 border border-green-300 rounded-md">
+                        </div>
+                    </div>
+
+                    <div id="blocoFinanceiroExames" class="bg-white p-4 rounded border border-green-200">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Já foi elaborado o orçamento dos exames?</label>
+                        <select id="temOrcamento" onchange="verificarRegras()" class="block w-full px-4 py-2 border border-gray-300 rounded-md">
+                            <option value="nao">Não</option><option value="sim">Sim</option>
+                        </select>
+                        <div id="campoValoresOrcamento" class="hidden grid grid-cols-2 gap-4 mt-4">
+                            <div><label class="block text-xs font-medium text-gray-700">Valor TOTAL dos Exames (R$)</label><input type="number" id="orcamentoTotal" oninput="sincronizarFinanceiro()" placeholder="0.00" class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md bg-yellow-50"></div>
+                            <div><label class="block text-xs font-medium text-gray-700">CUSTO dos Exames (R$)</label><input type="number" id="orcamentoCusto" oninput="sincronizarFinanceiro()" placeholder="0.00" class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md bg-yellow-50"></div>
+                        </div>
+                    </div>
+
+                    <div id="blocoFechamentoExames" class="border-t border-green-300 pt-4">
+                        <label class="block text-sm font-medium text-green-900 mb-2">Os exames foram REALIZADOS?</label>
+                        <select id="exameFeito" onchange="verificarRegras()" class="block w-full px-4 py-2 border border-green-300 rounded-md">
+                            <option value="nao">Não</option><option value="sim">Sim</option>
+                        </select>
+                        <div id="financeiroExame" class="hidden grid grid-cols-2 md:grid-cols-4 gap-4 mt-4 bg-gray-50 p-4 rounded shadow-inner border border-gray-400">
+                            <div class="col-span-2 md:col-span-4 text-xs font-bold text-gray-600 uppercase mb-2"><span>🔒 Área Restrita (Perfil Adm Gestão)</span></div>
+                            <div><label class="block text-xs font-medium text-gray-700">Total Exames</label><input type="number" id="adminTotal" class="mt-1 block w-full px-2 py-1 border rounded-md font-bold" readonly></div>
+                            <div><label class="block text-xs font-medium text-gray-700">Custo Exames</label><input type="number" id="adminCusto" class="mt-1 block w-full px-2 py-1 border rounded-md text-red-600" readonly></div>
+                            <div><label class="block text-xs font-bold text-orange-700">Repasse</label><input type="number" id="adminRepasseMedico" class="mt-1 block w-full px-2 py-1 border border-orange-400 rounded-md bg-orange-100 font-bold text-orange-900" readonly></div>
+                            <div><label class="block text-xs font-medium text-gray-700">LUCRO</label><input type="number" id="adminLucroClinica" class="mt-1 block w-full px-2 py-1 border border-green-400 rounded-md bg-green-100 font-bold text-green-800" readonly></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <button type="button" id="btnSalvar" onclick="salvarDados()" class="w-full bg-blue-800 text-white py-3 rounded-md font-semibold hover:bg-blue-900 transition duration-300 mt-6 shadow-md">
+                Finalizar e Salvar no Sistema
+            </button>
+        </form>
+    </div>
+
+    <script>
+        const URL_API = "https://script.google.com/macros/s/AKfycby-1WKshFbFVNfQliUY65_krsep0MnR3HEi6JlYEUG7mSiPVHIwPwRdIlSVnXbVFVQm/exec";
+        let usuarioLogado = null;
+        let idEdicao = null;
+
+        const OmnichannelService = {
+            executarEnvio: function(telefone, mensagem) {
+                const numeroLimpo = telefone.replace(/\D/g, '');
+                if (numeroLimpo.length < 10) return alert("Número de telefone inválido.");
+                const textoCodificado = encodeURIComponent(mensagem);
+                window.open(`https://wa.me/55${numeroLimpo}?text=${textoCodificado}`, '_blank');
+            },
+            templateConfirmacao: function(pac, med, und) {
+                return `Olá ${pac}, tudo bem? 💙\nPassando para confirmar sua consulta com o Dr(a). ${med} na unidade ${und}.\n\nPor favor, responda com SIM para confirmar.`;
+            },
+            templateOrcamento: function(pac, med, valor) {
+                return `Olá ${pac}, temos uma excelente notícia!\nSeu orçamento de exames realizados aqui na clínica com o médico ${med} já está pronto. O valor total ficou em R$ ${valor}.\n\nComo você prefere realizar o pagamento para agendarmos as datas?`;
+            },
+            templateDocumentos: function(pac, med, linksListados) {
+                return `Olá ${pac}, aqui é da equipe TeleAmei! 💙\n\nConforme sua consulta com o(a) Dr(a). ${med}, seguem os links seguros para acessar seus documentos médicos:\n${linksListados}\n\nQualquer dúvida, estamos à disposição!`;
+            }
+        };
+
+        function dispararWhatsApp(tipo) {
+            const telefone = document.getElementById('telefonePaciente').value;
+            const paciente = document.getElementById('nomePaciente').value || "Paciente";
+            if (!telefone) return alert("Preencha o campo de Telefone / WhatsApp antes de enviar mensagens.");
+            
+            let mensagem = "";
+            const medico = document.getElementById('medicoResponsavel').value || "médico responsável";
+
+            if (tipo === 'confirmacao') {
+                const unidade = document.getElementById('unidadeAtendimento').value || "nossa clínica";
+                mensagem = OmnichannelService.templateConfirmacao(paciente, medico, unidade);
+            } else if (tipo === 'orcamento') {
+                const valor = document.getElementById('orcamentoTotal').value || "0.00";
+                mensagem = OmnichannelService.templateOrcamento(paciente, medico, valor);
+            } else if (tipo === 'documentos') {
+                const tagsLinks = document.querySelectorAll('.link-documento');
+                if (tagsLinks.length === 0) return alert("Nenhum documento salvo na nuvem.\n\nPeça ao médico para anexar o arquivo e salvar o prontuário primeiro.");
+                let linksFormatados = "";
+                tagsLinks.forEach((tag, index) => { linksFormatados += `\n📄 Documento ${index + 1}: ${tag.href}`; });
+                mensagem = OmnichannelService.templateDocumentos(paciente, medico, linksFormatados);
+            }
+            OmnichannelService.executarEnvio(telefone, mensagem);
+        }
+
+        function validarAcesso() {
+            const sessao = localStorage.getItem("teleamei_sessao");
+            if (!sessao) { window.location.href = "login.html"; return; }
+            usuarioLogado = JSON.parse(sessao);
+            
+            document.getElementById('usuarioLogadoNome').innerText = usuarioLogado.nome;
+            document.getElementById('usuarioLogadoPerfil').innerText = usuarioLogado.perfil;
+            
+            // LÓGICA DE EXIBIÇÃO DE BOTÕES DE NAVEGAÇÃO SUPERIOR
+            if (usuarioLogado.perfil === "Admin") {
+                document.getElementById('btnBIAdminNav').classList.remove('hidden');
+                document.getElementById('btnDesempenhoNav').classList.remove('hidden');
+            } else if (usuarioLogado.perfil !== "Medico") {
+                document.getElementById('btnDesempenhoNav').classList.remove('hidden');
+            }
+
+            if (usuarioLogado.perfil === "Medico") {
+                document.getElementById('botoesOperacao').classList.add('hidden');
+                document.getElementById('botoesMedico').classList.add('hidden'); 
+                document.getElementById('blocoPreConsulta').classList.add('hidden');
+                document.getElementById('blocoOrcamentoExames').classList.add('hidden');
+                document.getElementById('blocoFinanceiroExames').classList.add('hidden');
+                document.getElementById('blocoFechamentoExames').classList.add('hidden');
+            } else {
+                document.getElementById('botoesOperacao').classList.remove('hidden');
+                document.getElementById('botoesMedico').classList.remove('hidden');
+            }
+            carregarMedicos();
+            verificarModoEdicao();
+        }
+
+        function fazerLogout() { localStorage.removeItem("teleamei_sessao"); window.location.href = "login.html"; }
+        function voltarPainel() { if (usuarioLogado.perfil === "Medico") window.location.href = "painel_medico.html"; else window.location.href = "crm_operacoes.html"; }
+
+        function carregarMedicos() {
+            fetch(URL_API + "?acao=listar_medicos").then(res => res.json()).then(retorno => {
+                const select = document.getElementById('medicoResponsavel');
+                select.innerHTML = '<option value="">Selecione o Médico...</option>';
+                if (retorno.status === "sucesso") {
+                    retorno.dados.forEach(m => {
+                        const op = document.createElement('option'); op.value = m.nome; op.innerText = m.nome;
+                        op.dataset.crm = m.crm || ""; op.dataset.comissaoConsulta = m.comissaoConsulta || 0; op.dataset.comissaoExame = m.comissaoExame || 0;
+                        select.appendChild(op);
+                    });
+                }
+            });
+        }
+
+        function verificarModoEdicao() {
+            const param = new URLSearchParams(window.location.search);
+            idEdicao = param.get('id');
+            if (idEdicao) {
+                document.getElementById('btnSalvar').innerText = "Atualizar Prontuário / Registro";
+                document.getElementById('btnSalvar').classList.replace('bg-blue-800', 'bg-orange-600');
+                fetch(URL_API).then(res => res.json()).then(res => {
+                    if (res.status === "sucesso") {
+                        const registro = res.dados.find(r => (r.ID || r.id) === idEdicao);
+                        if (registro) preencherFormulario(registro);
+                    }
+                });
+            }
+        }
+
+        function preencherFormulario(dados) {
+            document.getElementById('nomePaciente').value = dados.Paciente || dados.paciente || "";
+            document.getElementById('telefonePaciente').value = dados.Telefone || dados.telefone || "";
+            document.getElementById('especialidadeAgendada').value = dados.Especialidade || dados.especialidade || "";
+            document.getElementById('unidadeAtendimento').value = dados.Unidade || dados.unidade || "";
+            setTimeout(() => { document.getElementById('medicoResponsavel').value = dados.Medico_Responsavel || dados.medicoResponsavel || ""; }, 500);
+            
+            document.getElementById('valorConsulta').value = dados.Valor_Consulta || dados.valorConsulta || "";
+            document.getElementById('statusConsulta').value = (dados.Status_Consulta || dados.statusConsulta || "pendente").toLowerCase();
+            document.getElementById('orcamentoTotal').value = dados.Total_Exames || dados.totalExames || "";
+            document.getElementById('orcamentoCusto').value = dados.Custo_Exames || dados.custoExames || "";
+
+            const linkAnexo = dados.Link_Anexo || dados.linkAnexo || "";
+            const divLinks = document.getElementById('listaAnexosExistentes');
+            divLinks.innerHTML = ""; 
+
+            if (linkAnexo && linkAnexo !== "Sem anexo" && linkAnexo !== "") {
+                document.getElementById('divAnexoExistente').classList.remove('hidden');
+                document.getElementById('teveExame').value = "sim";
+                
+                let arrayLinks = linkAnexo.split(" | ");
+                arrayLinks.forEach((url, index) => {
+                    divLinks.innerHTML += `<a href="${url.trim()}" target="_blank" class="bg-blue-600 text-white px-3 py-1 rounded text-xs hover:bg-blue-700 transition mr-2 mb-2 inline-block link-documento shadow">📄 Documento ${index + 1}</a>`;
+                });
+            }
+
+            const totalExamesVal = parseFloat(dados.Total_Exames || dados.totalExames || 0);
+            if (totalExamesVal > 0) { 
+                document.getElementById('teveExame').value = "sim"; 
+                document.getElementById('temOrcamento').value = "sim"; 
+            }
+            setTimeout(() => { verificarRegras(); sincronizarFinanceiro(); }, 600);
+        }
+
+        function verificarRegras() {
+            const statusConsulta = document.getElementById('statusConsulta').value;
+            const querReagendar = document.getElementById('querReagendar').value;
+            const teveExame = document.getElementById('teveExame').value;
+            const agendouExame = document.getElementById('agendouExame').value;
+            const temOrcamento = document.getElementById('temOrcamento').value;
+            const exameFeito = document.getElementById('exameFeito').value;
+
+            document.getElementById('campoReagendar').classList.add('hidden');
+            document.getElementById('dadosReagendamento').classList.add('hidden');
+            document.getElementById('campoExame').classList.add('hidden');
+            document.getElementById('examesRealizadosDiv').classList.add('hidden');
+            document.getElementById('campoDataExame').classList.add('hidden');
+            document.getElementById('campoValoresOrcamento').classList.add('hidden');
+            document.getElementById('financeiroExame').classList.add('hidden');
+
+            if (statusConsulta === 'nao') {
+                document.getElementById('campoReagendar').classList.remove('hidden');
+                if (querReagendar === 'sim') document.getElementById('dadosReagendamento').classList.remove('hidden');
+            } 
+            else if (statusConsulta === 'sim') {
+                document.getElementById('campoExame').classList.remove('hidden');
+                if (teveExame === 'sim') {
+                    document.getElementById('examesRealizadosDiv').classList.remove('hidden');
+                    if (agendouExame === 'sim') document.getElementById('campoDataExame').classList.remove('hidden');
+                    if (temOrcamento === 'sim') document.getElementById('campoValoresOrcamento').classList.remove('hidden');
+                    if (exameFeito === 'sim') {
+                        sincronizarFinanceiro(); 
+                        if (usuarioLogado && usuarioLogado.perfil === "Admin") {
+                            document.getElementById('financeiroExame').classList.remove('hidden');
+                        }
+                    }
+                }
+            }
+        }
+
+        function sincronizarFinanceiro() {
+            const selectMedico = document.getElementById('medicoResponsavel');
+            let percMedicoConsulta = 0, percMedicoExame = 0;
+
+            if (selectMedico && selectMedico.selectedIndex > 0) {
+                const opcaoSelecionada = selectMedico.options[selectMedico.selectedIndex];
+                percMedicoConsulta = parseFloat(opcaoSelecionada.dataset.comissaoConsulta) || 0;
+                percMedicoExame = parseFloat(opcaoSelecionada.dataset.comissaoExame) || 0;
+            }
+
+            const valorConsulta = parseFloat(document.getElementById('valorConsulta').value) || 0;
+            const totalExames = parseFloat(document.getElementById('orcamentoTotal').value) || 0;
+            const custoExames = parseFloat(document.getElementById('orcamentoCusto').value) || 0;
+
+            const taxaTeleAmeiConsulta = valorConsulta * 0.25; 
+            const taxaTeleAmeiExames = totalExames * 0.10;     
+            const repasseMedicoConsulta = valorConsulta * (percMedicoConsulta / 100);
+            const repasseMedicoExame = totalExames * (percMedicoExame / 100);
+            const repasseTotal = repasseMedicoConsulta + repasseMedicoExame;
+            const lucroClinicaTotal = (valorConsulta - taxaTeleAmeiConsulta - repasseMedicoConsulta) + (totalExames - custoExames - taxaTeleAmeiExames - repasseMedicoExame);
+
+            if(document.getElementById('adminTotal')) document.getElementById('adminTotal').value = totalExames.toFixed(2);
+            if(document.getElementById('adminCusto')) document.getElementById('adminCusto').value = custoExames.toFixed(2);
+            if(document.getElementById('adminRepasseMedico')) document.getElementById('adminRepasseMedico').value = repasseTotal.toFixed(2);
+            if(document.getElementById('adminLucroClinica')) document.getElementById('adminLucroClinica').value = lucroClinicaTotal.toFixed(2);
+        }
+
+        function salvarDados() {
+            const selectMedico = document.getElementById('medicoResponsavel');
+            const crmSelecionado = (selectMedico && selectMedico.selectedIndex > 0) ? selectMedico.options[selectMedico.selectedIndex].dataset.crm : "";
+
+            const payload = {
+                paciente: document.getElementById('nomePaciente').value,
+                telefone: document.getElementById('telefonePaciente').value,
+                especialidade: document.getElementById('especialidadeAgendada').value,
+                unidade: document.getElementById('unidadeAtendimento').value,
+                medicoResponsavel: selectMedico ? selectMedico.value : "",
+                crmMedico: crmSelecionado, 
+                valorConsulta: parseFloat(document.getElementById('valorConsulta').value) || 0,
+                statusConsulta: document.getElementById('statusConsulta').value,
+                totalExames: parseFloat(document.getElementById('orcamentoTotal').value) || 0,
+                custoExames: parseFloat(document.getElementById('orcamentoCusto').value) || 0,
+                repasseMedico: parseFloat(document.getElementById('adminRepasseMedico') ? document.getElementById('adminRepasseMedico').value : 0),
+                lucroClinica: parseFloat(document.getElementById('adminLucroClinica') ? document.getElementById('adminLucroClinica').value : 0),
+                taxaTeleAmeiTotal: (parseFloat(document.getElementById('valorConsulta').value || 0) * 0.25) + (parseFloat(document.getElementById('orcamentoTotal').value || 0) * 0.10),
+                operadorResponsavel: usuarioLogado.nome
+            };
+
+            if (idEdicao) { payload.acao = "atualizar_registro"; payload.id_registro = idEdicao; }
+
+            const btnSalvar = document.getElementById('btnSalvar');
+            btnSalvar.innerText = "Lendo arquivos e salvando...";
+            btnSalvar.disabled = true;
+
+            const inputAnexo = document.getElementById('anexoPedido');
+            const arquivos = inputAnexo.files;
+
+            if (arquivos && arquivos.length > 0) {
+                let promessasDeLeitura = Array.from(arquivos).map(file => {
+                    return new Promise((resolve) => {
+                        let reader = new FileReader();
+                        reader.onload = e => resolve({ base64: e.target.result.split(',')[1], mimeType: file.type, nome: file.name });
+                        reader.readAsDataURL(file);
+                    });
+                });
+
+                Promise.all(promessasDeLeitura).then(arquivosLidos => {
+                    payload.arquivos = arquivosLidos;
+                    enviarRequisicao(URL_API, payload, btnSalvar);
+                });
+            } else {
+                enviarRequisicao(URL_API, payload, btnSalvar);
+            }
+        }
+
+        function enviarRequisicao(url, payload, btnSalvar) {
+            fetch(url, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(payload) })
+            .then(() => {
+                alert(idEdicao ? "✅ Prontuário Atualizado com sucesso!" : "✅ Dados salvos com sucesso!");
+                if (idEdicao) voltarPainel(); else window.location.reload();
+            })
+            .finally(() => { btnSalvar.innerText = "Finalizar e Salvar no Sistema"; btnSalvar.disabled = false; });
+        }
+
+        window.onload = validarAcesso;
+    </script>
+</body>
+</html>

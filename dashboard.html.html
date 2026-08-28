@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BI Executivo - TeleAmei</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body class="bg-gray-100 min-h-screen p-8">
+    
+    <div class="max-w-7xl mx-auto flex justify-between items-center mb-6 bg-purple-900 text-white p-4 rounded-lg shadow">
+        <div class="font-bold text-lg">TeleAmei 📊 | BI Executivo Global</div>
+        <div class="flex items-center space-x-4">
+            <span class="text-sm">Admin: <strong id="usuarioLogadoNome">Carregando...</strong></span>
+            <button onclick="window.location.href='crm_operacoes.html'" class="bg-indigo-600 hover:bg-indigo-700 px-3 py-1 rounded text-sm font-bold shadow transition">Voltar para CRM</button>
+            <button onclick="fazerLogout()" class="bg-red-500 hover:bg-red-600 px-3 py-1 rounded text-sm font-bold shadow transition">Sair</button>
+        </div>
+    </div>
+
+    <div class="max-w-7xl mx-auto space-y-6">
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-6" id="painelResumo">
+            <div class="col-span-full text-center py-6 text-purple-600 font-bold">Processando dados financeiros...</div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div class="bg-white p-6 rounded-xl shadow-md border border-gray-200">
+                <h3 class="text-sm font-bold text-gray-500 uppercase mb-4">Atendimentos por Status</h3>
+                <canvas id="graficoStatus"></canvas>
+            </div>
+            <div class="bg-white p-6 rounded-xl shadow-md border border-gray-200">
+                <h3 class="text-sm font-bold text-gray-500 uppercase mb-4">Volume Financeiro (R$)</h3>
+                <canvas id="graficoFinanceiro"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const URL_API = "https://script.google.com/macros/s/AKfycby-1WKshFbFVNfQliUY65_krsep0MnR3HEi6JlYEUG7mSiPVHIwPwRdIlSVnXbVFVQm/exec";
+
+        function validarAcesso() {
+            const sessao = localStorage.getItem("teleamei_sessao");
+            if (!sessao) { window.location.href = "login.html"; return; }
+            
+            const usuarioLogado = JSON.parse(sessao);
+            if (usuarioLogado.perfil !== "Admin") {
+                alert("Acesso restrito para Administradores.");
+                window.location.href = "crm_operacoes.html";
+                return;
+            }
+            
+            document.getElementById('usuarioLogadoNome').innerText = usuarioLogado.nome;
+            carregarDashboard();
+        }
+
+        function fazerLogout() { localStorage.removeItem("teleamei_sessao"); window.location.href = "login.html"; }
+
+        function carregarDashboard() {
+            fetch(URL_API)
+                .then(res => res.json())
+                .then(res => { if (res.status === "sucesso") renderizarBI(res.dados); })
+                .catch(err => console.error("Erro no BI", err));
+        }
+
+        function renderizarBI(dados) {
+            let totalFaturamento = 0, lucroLiquido = 0, volumeExames = 0, repsMedicos = 0;
+            let countRealizados = 0, countFaltas = 0, countPendentes = 0;
+
+            dados.forEach(item => {
+                totalFaturamento += parseFloat(item.Valor_Consulta || 0);
+                volumeExames += parseFloat(item.Total_Exames || 0);
+                lucroLiquido += parseFloat(item.Lucro_Clinica || 0);
+                repsMedicos += parseFloat(item.Repasse_Medico || 0);
+
+                const s = (item.Status_Consulta || "").toLowerCase();
+                if (s === 'sim') countRealizados++;
+                else if (s === 'nao') countFaltas++;
+                else countPendentes++;
+            });
+
+            const f = (val) => "R$ " + val.toLocaleString('pt-BR', {minimumFractionDigits: 2});
+
+            document.getElementById('painelResumo').innerHTML = `
+                <div class="bg-white p-6 rounded-xl shadow-md border-t-4 border-blue-500">
+                    <p class="text-xs font-bold text-gray-500 uppercase">Faturamento Bruto</p>
+                    <p class="text-2xl font-black text-gray-800 mt-2">${f(totalFaturamento + volumeExames)}</p>
+                </div>
+                <div class="bg-white p-6 rounded-xl shadow-md border-t-4 border-orange-500">
+                    <p class="text-xs font-bold text-gray-500 uppercase">Repasse Médico</p>
+                    <p class="text-2xl font-black text-gray-800 mt-2">${f(repsMedicos)}</p>
+                </div>
+                <div class="bg-white p-6 rounded-xl shadow-md border-t-4 border-teal-500">
+                    <p class="text-xs font-bold text-gray-500 uppercase">Volume Exames</p>
+                    <p class="text-2xl font-black text-gray-800 mt-2">${f(volumeExames)}</p>
+                </div>
+                <div class="bg-white p-6 rounded-xl shadow-md border-t-4 border-green-500 bg-green-50">
+                    <p class="text-xs font-bold text-green-700 uppercase">Lucro Líquido Clínica</p>
+                    <p class="text-2xl font-black text-green-700 mt-2">${f(lucroLiquido)}</p>
+                </div>
+            `;
+
+            new Chart(document.getElementById('graficoStatus'), {
+                type: 'doughnut',
+                data: {
+                    labels: ['Realizados', 'Faltas', 'Pendentes'],
+                    datasets: [{ data: [countRealizados, countFaltas, countPendentes], backgroundColor: ['#10B981', '#EF4444', '#F59E0B'] }]
+                }
+            });
+
+            new Chart(document.getElementById('graficoFinanceiro'), {
+                type: 'bar',
+                data: {
+                    labels: ['Faturamento Consultas', 'Faturamento Exames', 'Lucro Líquido'],
+                    datasets: [{ label: 'Valores (R$)', data: [totalFaturamento, volumeExames, lucroLiquido], backgroundColor: ['#3B82F6', '#14B8A6', '#10B981'] }]
+                }
+            });
+        }
+
+        window.onload = validarAcesso;
+    </script>
+</body>
+</html>

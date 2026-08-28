@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Acesso Restrito - TeleAmei</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-blue-50 flex items-center justify-center min-h-screen p-4">
+    
+    <div class="bg-white p-8 rounded-xl shadow-lg w-full max-w-sm border-t-4 border-blue-600">
+        <div class="text-center mb-8">
+            <h1 class="text-3xl font-bold text-blue-800">TeleAmei 💙</h1>
+            <p class="text-sm text-gray-500 mt-2">Acesso Restrito a Colaboradores</p>
+        </div>
+
+        <form id="formLogin" class="space-y-6">
+            <div>
+                <label class="block text-sm font-semibold text-gray-700">E-mail Profissional</label>
+                <input type="email" id="email" required class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500">
+            </div>
+            
+            <div>
+                <label class="block text-sm font-semibold text-gray-700">Senha</label>
+                <input type="password" id="senha" required class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500">
+            </div>
+
+            <button type="button" id="btnAcessar" onclick="fazerLogin()" class="w-full bg-blue-600 text-white py-3 rounded-md font-bold hover:bg-blue-700 transition duration-300 shadow-md">
+                Acessar Plataforma
+            </button>
+        </form>
+        
+        <div id="mensagemErro" class="hidden mt-4 p-3 bg-red-100 text-red-700 text-sm rounded text-center font-semibold"></div>
+    </div>
+
+    <script>
+        function fazerLogin() {
+            const btn = document.getElementById('btnAcessar');
+            const erroDiv = document.getElementById('mensagemErro');
+            
+            btn.innerText = "Autenticando...";
+            btn.disabled = true;
+            erroDiv.classList.add('hidden');
+
+            const urlApi = "https://script.google.com/macros/s/AKfycby-1WKshFbFVNfQliUY65_krsep0MnR3HEi6JlYEUG7mSiPVHIwPwRdIlSVnXbVFVQm/exec";
+            
+            const payload = {
+                acao: "login",
+                email: document.getElementById('email').value,
+                senha: document.getElementById('senha').value
+            };
+
+            fetch(urlApi, {
+                method: 'POST',
+                mode: 'no-cors',
+                headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                body: JSON.stringify(payload)
+            })
+            .then(() => validarSessaoLocal(payload.email, payload.senha, urlApi))
+            .catch(erro => {
+                erroDiv.innerText = "Falha de conexão com o servidor.";
+                erroDiv.classList.remove('hidden');
+                btn.innerText = "Acessar Plataforma";
+                btn.disabled = false;
+            });
+        }
+
+        function validarSessaoLocal(email, senhaDigitada, urlApi) {
+            fetch(urlApi + "?acao=listar_usuarios")
+                .then(res => res.json())
+                .then(retorno => {
+                    if (retorno.status === "sucesso") {
+                        const usuario = retorno.dados.find(u => u.email === email);
+                        
+                        if (usuario && usuario.status === "Ativo") {
+                            localStorage.setItem("teleamei_sessao", JSON.stringify(usuario));
+                            
+                            // Redirecionamento 100% corrigido
+                            if (usuario.perfil === "Medico") {
+                                window.location.href = "painel_medico.html";
+                            } else if (usuario.perfil === "Admin") {
+                                window.location.href = "crm_operacoes.html"; 
+                            } else {
+                                window.location.href = "crm_operacoes.html";
+                            }
+                        } else {
+                            const erroDiv = document.getElementById('mensagemErro');
+                            erroDiv.innerText = "Acesso Negado. Credenciais inválidas ou usuário inativo.";
+                            erroDiv.classList.remove('hidden');
+                            document.getElementById('btnAcessar').innerText = "Acessar Plataforma";
+                            document.getElementById('btnAcessar').disabled = false;
+                        }
+                    }
+                });
+        }
+    </script>
+</body>
+</html>

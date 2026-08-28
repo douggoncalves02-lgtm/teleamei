@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Painel do Médico - TeleAmei</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 min-h-screen p-8">
+    
+    <!-- BARRA DE NAVEGAÇÃO E SESSÃO -->
+    <div class="max-w-6xl mx-auto flex justify-between items-center mb-4 bg-blue-900 text-white p-4 rounded-lg shadow">
+        <div class="font-bold text-lg">TeleAmei 💙 | Módulo Médico</div>
+        <div class="flex items-center space-x-4">
+            <span class="text-sm">Dr(a). <strong id="usuarioLogadoNome">Carregando...</strong></span>
+            <button onclick="fazerLogout()" class="bg-red-500 hover:bg-red-600 px-3 py-1 rounded text-sm font-bold shadow transition">Sair</button>
+        </div>
+    </div>
+
+    <div class="max-w-6xl mx-auto bg-white p-8 rounded-xl shadow-lg border-t-4 border-blue-600">
+        
+        <div class="border-b pb-6 mb-6">
+            <h1 class="text-2xl font-bold text-blue-900">Sua Agenda de Atendimentos</h1>
+            <p class="text-sm text-gray-500">Abaixo estão os pacientes direcionados para você.</p>
+        </div>
+
+        <!-- Grid de Pacientes -->
+        <div id="gridPacientes" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div class="col-span-full text-center py-12 text-blue-600 font-bold">
+                Buscando sua agenda na nuvem...
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        const URL_API = "https://script.google.com/macros/s/AKfycby-1WKshFbFVNfQliUY65_krsep0MnR3HEi6JlYEUG7mSiPVHIwPwRdIlSVnXbVFVQm/exec";
+        let usuarioLogado = null;
+
+        // 1. VALIDAÇÃO DE SESSÃO
+        function validarAcesso() {
+            const sessao = localStorage.getItem("teleamei_sessao");
+            if (!sessao) {
+                alert("Acesso negado. Faça o login.");
+                window.location.href = "login.html";
+                return;
+            }
+            usuarioLogado = JSON.parse(sessao);
+            
+            // Segurança Adicional: Se não for médico, expulsa
+            if (usuarioLogado.perfil !== "Medico") {
+                alert("Área restrita para médicos.");
+                window.location.href = "login.html";
+                return;
+            }
+
+            document.getElementById('usuarioLogadoNome').innerText = usuarioLogado.nome;
+            
+            // Inicia a busca automática da agenda
+            carregarAgendaMedica();
+        }
+
+        function fazerLogout() {
+            localStorage.removeItem("teleamei_sessao");
+            window.location.href = "login.html";
+        }
+
+        // 2. BUSCA AS CONSULTAS ESPECÍFICAS DESTE MÉDICO
+        function carregarAgendaMedica() {
+            const container = document.getElementById('gridPacientes');
+
+            fetch(URL_API)
+                .then(res => res.json())
+                .then(res => {
+                    container.innerHTML = '';
+                    if (res.status === "sucesso") {
+                        
+                        // ⭐️ O Segredo: Filtra apenas onde o Medico_Responsavel é igual ao nome de quem logou!
+                        const consultas = res.dados.filter(c => c.Medico_Responsavel === usuarioLogado.nome);
+
+                        if (consultas.length === 0) {
+                            container.innerHTML = '<div class="col-span-full text-center py-12 text-gray-500 text-lg border-2 border-dashed border-gray-300 rounded-lg">Nenhum paciente agendado para você até o momento.</div>';
+                            return;
+                        }
+
+                        consultas.forEach(c => {
+                            const dataFormatada = c.Data_Registro ? new Date(c.Data_Registro).toLocaleDateString('pt-BR') : 'Data N/I';
+                            
+                            container.innerHTML += `
+                                <div class="bg-gray-50 rounded-lg p-5 border border-gray-200 shadow-sm flex flex-col justify-between hover:shadow-md transition">
+                                    <div>
+                                        <div class="flex justify-between items-start mb-2">
+                                            <span class="text-xs font-bold uppercase px-2 py-1 bg-blue-100 text-blue-800 rounded">${c.Especialidade || 'Consulta'}</span>
+                                            <span class="text-xs text-gray-500">${dataFormatada}</span>
+                                        </div>
+                                        <h3 class="text-lg font-bold text-gray-800">${c.Paciente || 'Sem Nome'}</h3>
+                                        <p class="text-xs text-gray-600 mt-1">Unidade: <strong>${c.Unidade || 'N/A'}</strong></p>
+                                        <p class="text-xs text-gray-600">Status: <span class="font-bold text-indigo-700">${c.Status_Consulta || 'Pendente'}</span></p>
+                                    </div>
+
+                                    <div class="mt-4 pt-4 border-t border-gray-200">
+                                        ${c.Link_Anexo && c.Link_Anexo !== 'Sem anexo' ? 
+                                            `<a href="${c.Link_Anexo}" target="_blank" class="block text-center text-xs font-bold text-blue-600 hover:text-blue-800 hover:underline mb-3">📄 Visualizar Anexo / Pedido</a>` : 
+                                            '<span class="block text-center text-xs text-gray-400 mb-3">Sem documentos anexados</span>'}
+                                        
+                                        <button onclick="abrirAtendimento('${c.ID}')" class="w-full bg-blue-600 text-white py-2 rounded text-xs font-bold hover:bg-blue-700 shadow">
+                                            Acessar Prontuário
+                                        </button>
+                                    </div>
+                                </div>
+                            `;
+                        });
+                    }
+                })
+                .catch(err => {
+                    container.innerHTML = '<div class="col-span-full text-center py-12 text-red-500 font-bold">Erro ao carregar agenda. Verifique sua internet.</div>';
+                });
+        }
+
+       function abrirAtendimento(id) {
+            // Joga o médico para o formulário passando o ID pela URL
+            window.location.href = `admin.html?id=${id}`;
+        }
+
+        // Dá a partida assim que a tela abre
+        window.onload = validarAcesso;
+    </script>
+</body>
+</html>
