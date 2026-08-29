@@ -1,3 +1,13 @@
 {
-  "cleanUrls": true
+  "cleanUrls": true,
+  "trailingSlash": false,
+  "rewrites": [
+    { "source": "/login", "destination": "/login.html" },
+    { "source": "/crm_operacoes", "destination": "/crm_operacoes.html" },
+    { "source": "/dashboard", "destination": "/dashboard.html" },
+    { "source": "/dashboard_operador", "destination": "/dashboard_operador.html" },
+    { "source": "/painel_medico", "destination": "/painel_medico.html" },
+    { "source": "/usuarios", "destination": "/usuarios.html" },
+    { "source": "/admin", "destination": "/admin.html" }
+  ]
 }
