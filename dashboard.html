@@ -7,22 +7,21 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
-<body class="bg-slate-50 min-h-screen p-8">
+<body class="bg-slate-50 min-h-screen p-4 md:p-8">
     
-    <!-- BARRA DE NAVEGAÇÃO -->
-    <div class="max-w-7xl mx-auto flex justify-between items-center mb-6 bg-purple-900 text-white p-4 rounded-lg shadow-lg">
-        <div class="font-bold text-lg">TeleAmei 📊 | BI Executivo Global</div>
-        <div class="flex items-center space-x-4">
-            <span class="text-sm">Admin: <strong id="usuarioLogadoNome">Carregando...</strong></span>
-            <button onclick="window.location.href='crm_operacoes.html'" class="bg-indigo-600 hover:bg-indigo-700 px-3 py-1 rounded text-sm font-bold shadow transition">Voltar para CRM</button>
-            <button onclick="fazerLogout()" class="bg-red-500 hover:bg-red-600 px-3 py-1 rounded text-sm font-bold shadow transition">Sair</button>
+    <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4 mb-6 bg-purple-900 text-white p-4 rounded-lg shadow-lg">
+        <div class="font-bold text-lg text-center md:text-left">TeleAmei 📊 | BI Executivo Global</div>
+        <div class="flex flex-wrap justify-center items-center gap-2 md:gap-4">
+            <span class="text-sm w-full md:w-auto text-center md:text-left mb-2 md:mb-0">Admin: <strong id="usuarioLogadoNome">Carregando...</strong></span>
+            <button onclick="window.location.href='relatorios.html'" class="bg-emerald-600 hover:bg-emerald-700 px-3 py-2 md:py-1 rounded text-sm font-bold shadow transition w-full md:w-auto">📥 Importar/Exportar</button>
+            <button onclick="window.location.href='crm_operacoes.html'" class="bg-indigo-600 hover:bg-indigo-700 px-3 py-2 md:py-1 rounded text-sm font-bold shadow transition w-full md:w-auto">Voltar para CRM</button>
+            <button onclick="fazerLogout()" class="bg-red-500 hover:bg-red-600 px-3 py-2 md:py-1 rounded text-sm font-bold shadow transition w-full md:w-auto">Sair</button>
         </div>
     </div>
 
-    <!-- PAINEL DE FILTROS AVANÇADOS -->
-    <div class="max-w-7xl mx-auto bg-white p-6 rounded-xl shadow-md border-t-4 border-indigo-500 mb-6">
+    <div class="max-w-7xl mx-auto bg-white p-4 md:p-6 rounded-xl shadow-md border-t-4 border-indigo-500 mb-6">
         <h2 class="text-sm font-bold text-indigo-900 uppercase mb-4">Filtros de Análise (Cruzamento de Dados)</h2>
-        <div class="grid grid-cols-1 md:grid-cols-6 gap-4 items-end">
+        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-6 gap-4 items-end">
             <div><label class="block text-xs font-bold text-gray-600">Data Inicial</label><input type="date" id="dataInicio" class="mt-1 w-full px-3 py-2 border rounded-md text-sm"></div>
             <div><label class="block text-xs font-bold text-gray-600">Data Final</label><input type="date" id="dataFim" class="mt-1 w-full px-3 py-2 border rounded-md text-sm"></div>
             <div><label class="block text-xs font-bold text-gray-600">Unidade</label><select id="filtroUnidade" class="mt-1 w-full px-3 py-2 border rounded-md text-sm"><option value="">Todas</option></select></div>
@@ -30,24 +29,22 @@
             <div><label class="block text-xs font-bold text-gray-600">Médico</label><select id="filtroMedico" class="mt-1 w-full px-3 py-2 border rounded-md text-sm"><option value="">Todos</option></select></div>
             <div><label class="block text-xs font-bold text-gray-600">Especialidade</label><select id="filtroEspecialidade" class="mt-1 w-full px-3 py-2 border rounded-md text-sm"><option value="">Todas</option></select></div>
         </div>
-        <div class="mt-4 flex justify-end space-x-2">
-            <button onclick="limparFiltros()" class="bg-gray-200 text-gray-700 px-4 py-2 rounded text-sm font-bold hover:bg-gray-300 transition">Limpar</button>
-            <button onclick="aplicarFiltros()" class="bg-indigo-600 text-white px-6 py-2 rounded text-sm font-bold shadow hover:bg-indigo-700 transition">Aplicar Filtros</button>
+        <div class="mt-4 flex flex-wrap justify-end gap-2">
+            <button onclick="limparFiltros()" class="w-full md:w-auto bg-gray-200 text-gray-700 px-4 py-2 rounded text-sm font-bold hover:bg-gray-300 transition">Limpar</button>
+            <button onclick="aplicarFiltros()" class="w-full md:w-auto bg-indigo-600 text-white px-6 py-2 rounded text-sm font-bold shadow hover:bg-indigo-700 transition">Aplicar Filtros</button>
         </div>
     </div>
 
-    <!-- INDICADORES FINANCEIROS (KPIs) -->
     <div class="max-w-7xl mx-auto grid grid-cols-2 md:grid-cols-5 gap-4 mb-6" id="painelResumo">
         <div class="col-span-full text-center py-6 text-purple-600 font-bold">Buscando inteligência de dados...</div>
     </div>
 
-    <!-- ÁREA DE GRÁFICOS -->
     <div class="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div class="bg-white p-6 rounded-xl shadow-md border border-gray-200">
+        <div class="bg-white p-4 md:p-6 rounded-xl shadow-md border border-gray-200">
             <h3 class="text-sm font-bold text-gray-500 uppercase mb-4">Volume por Status de Atendimento</h3>
             <canvas id="graficoStatus"></canvas>
         </div>
-        <div class="bg-white p-6 rounded-xl shadow-md border border-gray-200">
+        <div class="bg-white p-4 md:p-6 rounded-xl shadow-md border border-gray-200">
             <h3 class="text-sm font-bold text-gray-500 uppercase mb-4">Composição Financeira (R$)</h3>
             <canvas id="graficoFinanceiro"></canvas>
         </div>
@@ -62,14 +59,8 @@
         function validarAcesso() {
             const sessao = localStorage.getItem("teleamei_sessao");
             if (!sessao) { window.location.href = "login.html"; return; }
-            
             const usuarioLogado = JSON.parse(sessao);
-            if (usuarioLogado.perfil !== "Admin") {
-                alert("Acesso restrito para Administradores.");
-                window.location.href = "crm_operacoes.html";
-                return;
-            }
-            
+            if (usuarioLogado.perfil !== "Admin") { alert("Acesso restrito para Administradores."); window.location.href = "crm_operacoes.html"; return; }
             document.getElementById('usuarioLogadoNome').innerText = usuarioLogado.nome;
             carregarDashboard();
         }
@@ -77,24 +68,15 @@
         function fazerLogout() { localStorage.removeItem("teleamei_sessao"); window.location.href = "login.html"; }
 
         function carregarDashboard() {
-            fetch(URL_API)
-                .then(res => res.json())
-                .then(res => { 
-                    if (res.status === "sucesso") {
-                        baseDadosGlobal = res.dados;
-                        popularDropdowns(baseDadosGlobal);
-                        aplicarFiltros();
-                    }
-                })
-                .catch(err => console.error("Erro no BI", err));
+            fetch(URL_API).then(res => res.json()).then(res => { 
+                if (res.status === "sucesso") {
+                    baseDadosGlobal = res.dados; popularDropdowns(baseDadosGlobal); aplicarFiltros();
+                }
+            });
         }
 
         function popularDropdowns(dados) {
-            const unidades = new Set();
-            const operadores = new Set();
-            const medicos = new Set();
-            const especialidades = new Set();
-
+            const unidades = new Set(); const operadores = new Set(); const medicos = new Set(); const especialidades = new Set();
             dados.forEach(item => {
                 if(item.Unidade) unidades.add(item.Unidade);
                 const op = item.Operador_Responsavel || item["Operador Responsavel"];
@@ -102,129 +84,76 @@
                 if(item.Medico_Responsavel) medicos.add(item.Medico_Responsavel);
                 if(item.Especialidade || item.especialidade) especialidades.add(item.Especialidade || item.especialidade);
             });
-
-            const preencher = (id, setValores) => {
-                const select = document.getElementById(id);
-                Array.from(setValores).sort().forEach(val => {
-                    select.innerHTML += `<option value="${val}">${val}</option>`;
-                });
-            };
-
-            preencher('filtroUnidade', unidades);
-            preencher('filtroOperador', operadores);
-            preencher('filtroMedico', medicos);
-            preencher('filtroEspecialidade', especialidades);
+            const preencher = (id, setValores) => { const select = document.getElementById(id); Array.from(setValores).sort().forEach(val => { select.innerHTML += `<option value="${val}">${val}</option>`; }); };
+            preencher('filtroUnidade', unidades); preencher('filtroOperador', operadores); preencher('filtroMedico', medicos); preencher('filtroEspecialidade', especialidades);
         }
 
         function limparFiltros() {
-            document.getElementById('dataInicio').value = '';
-            document.getElementById('dataFim').value = '';
-            document.getElementById('filtroUnidade').value = '';
-            document.getElementById('filtroOperador').value = '';
-            document.getElementById('filtroMedico').value = '';
-            document.getElementById('filtroEspecialidade').value = '';
+            document.querySelectorAll('input[type="date"], select').forEach(el => el.value = '');
             aplicarFiltros();
         }
 
         function aplicarFiltros() {
-            const dataInicio = document.getElementById('dataInicio').value ? new Date(document.getElementById('dataInicio').value + "T00:00:00") : null;
-            const dataFim = document.getElementById('dataFim').value ? new Date(document.getElementById('dataFim').value + "T23:59:59") : null;
-            const unidade = document.getElementById('filtroUnidade').value.toLowerCase();
-            const operador = document.getElementById('filtroOperador').value.toLowerCase();
-            const medico = document.getElementById('filtroMedico').value.toLowerCase();
-            const especialidade = document.getElementById('filtroEspecialidade').value.toLowerCase();
+            const dInicio = document.getElementById('dataInicio').value ? new Date(document.getElementById('dataInicio').value + "T00:00:00") : null;
+            const dFim = document.getElementById('dataFim').value ? new Date(document.getElementById('dataFim').value + "T23:59:59") : null;
+            const und = document.getElementById('filtroUnidade').value.toLowerCase();
+            const op = document.getElementById('filtroOperador').value.toLowerCase();
+            const med = document.getElementById('filtroMedico').value.toLowerCase();
+            const esp = document.getElementById('filtroEspecialidade').value.toLowerCase();
 
-            const dadosFiltrados = baseDadosGlobal.filter(item => {
+            const filtrados = baseDadosGlobal.filter(item => {
                 let passaData = true;
-                if (dataInicio || dataFim) {
-                    const dataItem = new Date(item.Data_Registro || item.Data_Agendada);
-                    if (dataInicio && dataItem < dataInicio) passaData = false;
-                    if (dataFim && dataItem > dataFim) passaData = false;
+                if (dInicio || dFim) {
+                    const dataItem = new Date(item.Data_Agendada || item.Data_Registro);
+                    if (dInicio && dataItem < dInicio) passaData = false;
+                    if (dFim && dataItem > dFim) passaData = false;
                 }
-
-                const passaUnidade = unidade === "" || (item.Unidade || "").toLowerCase() === unidade;
-                const opAtual = (item.Operador_Responsavel || item["Operador Responsavel"] || "").toLowerCase();
-                const passaOperador = operador === "" || opAtual === operador;
-                const passaMedico = medico === "" || (item.Medico_Responsavel || "").toLowerCase() === medico;
-                const espAtual = (item.Especialidade || item.especialidade || "").toLowerCase();
-                const passaEspecialidade = especialidade === "" || espAtual === especialidade;
-
-                return passaData && passaUnidade && passaOperador && passaMedico && passaEspecialidade;
+                return passaData && 
+                       (und === "" || (item.Unidade || "").toLowerCase() === und) &&
+                       (op === "" || (item.Operador_Responsavel || item["Operador Responsavel"] || "").toLowerCase() === op) &&
+                       (med === "" || (item.Medico_Responsavel || "").toLowerCase() === med) &&
+                       (esp === "" || (item.Especialidade || item.especialidade || "").toLowerCase() === esp);
             });
-
-            renderizarBI(dadosFiltrados);
+            renderizarBI(filtrados);
         }
 
         function renderizarBI(dados) {
-            let faturamentoConsultas = 0, faturamentoExames = 0, custoExames = 0, lucroClinica = 0, taxaTeleAmei = 0;
+            let fConsultas = 0, fExames = 0, cExames = 0, lucro = 0, txTeleAmei = 0;
             let statusCount = {};
 
             dados.forEach(item => {
-                faturamentoConsultas += parseFloat(item.Valor_Consulta || 0);
-                faturamentoExames += parseFloat(item.Total_Exames || 0);
-                custoExames += parseFloat(item.Custo_Exames || 0);
-                lucroClinica += parseFloat(item.Lucro_Clinica || 0);
-                taxaTeleAmei += parseFloat(item.Taxa_TeleAmei_Total || item["Taxa TeleAmei Total"] || 0);
-
+                fConsultas += parseFloat(item.Valor_Consulta || 0);
+                fExames += parseFloat(item.Total_Exames || 0);
+                cExames += parseFloat(item.Custo_Exames || 0);
+                lucro += parseFloat(item.Lucro_Clinica || 0);
+                txTeleAmei += parseFloat(item.Taxa_TeleAmei_Total || item["Taxa TeleAmei Total"] || 0);
                 const status = item.Status_Consulta || "Pendente";
                 statusCount[status] = (statusCount[status] || 0) + 1;
             });
 
             const f = (val) => "R$ " + val.toLocaleString('pt-BR', {minimumFractionDigits: 2});
 
-            // RENDERIZAR KPIs
             document.getElementById('painelResumo').innerHTML = `
-                <div class="bg-white p-5 rounded-xl shadow-sm border-l-4 border-blue-500">
-                    <p class="text-[10px] font-bold text-gray-500 uppercase">Consultas (Bruto)</p>
-                    <p class="text-xl font-black text-gray-800 mt-1">${f(faturamentoConsultas)}</p>
-                </div>
-                <div class="bg-white p-5 rounded-xl shadow-sm border-l-4 border-teal-500">
-                    <p class="text-[10px] font-bold text-gray-500 uppercase">Exames (Bruto)</p>
-                    <p class="text-xl font-black text-gray-800 mt-1">${f(faturamentoExames)}</p>
-                </div>
-                <div class="bg-white p-5 rounded-xl shadow-sm border-l-4 border-red-500">
-                    <p class="text-[10px] font-bold text-red-500 uppercase">Custo Exames</p>
-                    <p class="text-xl font-black text-red-600 mt-1">${f(custoExames)}</p>
-                </div>
-                <div class="bg-white p-5 rounded-xl shadow-sm border-l-4 border-purple-500 bg-purple-50">
-                    <p class="text-[10px] font-bold text-purple-700 uppercase">Taxa TeleAmei</p>
-                    <p class="text-xl font-black text-purple-700 mt-1">${f(taxaTeleAmei)}</p>
-                </div>
-                <div class="bg-white p-5 rounded-xl shadow-sm border-l-4 border-green-500 bg-green-50">
-                    <p class="text-[10px] font-bold text-green-700 uppercase">Lucro Clínica Líquido</p>
-                    <p class="text-xl font-black text-green-700 mt-1">${f(lucroClinica)}</p>
-                </div>
+                <div class="bg-white p-4 rounded-xl shadow-sm border-l-4 border-blue-500"><p class="text-[10px] font-bold text-gray-500 uppercase">Consultas (Bruto)</p><p class="text-lg md:text-xl font-black text-gray-800 mt-1">${f(fConsultas)}</p></div>
+                <div class="bg-white p-4 rounded-xl shadow-sm border-l-4 border-teal-500"><p class="text-[10px] font-bold text-gray-500 uppercase">Exames (Bruto)</p><p class="text-lg md:text-xl font-black text-gray-800 mt-1">${f(fExames)}</p></div>
+                <div class="bg-white p-4 rounded-xl shadow-sm border-l-4 border-red-500"><p class="text-[10px] font-bold text-red-500 uppercase">Custo Exames</p><p class="text-lg md:text-xl font-black text-red-600 mt-1">${f(cExames)}</p></div>
+                <div class="bg-white p-4 rounded-xl shadow-sm border-l-4 border-purple-500 bg-purple-50"><p class="text-[10px] font-bold text-purple-700 uppercase">Taxa TeleAmei</p><p class="text-lg md:text-xl font-black text-purple-700 mt-1">${f(txTeleAmei)}</p></div>
+                <div class="bg-white p-4 rounded-xl shadow-sm border-l-4 border-green-500 bg-green-50"><p class="text-[10px] font-bold text-green-700 uppercase">Lucro Líquido</p><p class="text-lg md:text-xl font-black text-green-700 mt-1">${f(lucro)}</p></div>
             `;
 
-            // DESTRUIR GRÁFICOS ANTIGOS (Evita sobreposição ao filtrar)
             if (grafStatusInstancia) grafStatusInstancia.destroy();
             if (grafFinInstancia) grafFinInstancia.destroy();
 
-            // RENDERIZAR GRÁFICOS
-            const labelsStatus = Object.keys(statusCount);
-            const dataStatus = Object.values(statusCount);
-            
             grafStatusInstancia = new Chart(document.getElementById('graficoStatus'), {
                 type: 'doughnut',
-                data: {
-                    labels: labelsStatus,
-                    datasets: [{ data: dataStatus, backgroundColor: ['#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6', '#14B8A6'] }]
-                }
+                data: { labels: Object.keys(statusCount), datasets: [{ data: Object.values(statusCount), backgroundColor: ['#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6', '#14B8A6'] }] }
             });
 
             grafFinInstancia = new Chart(document.getElementById('graficoFinanceiro'), {
                 type: 'bar',
-                data: {
-                    labels: ['Faturamento Consultas', 'Faturamento Exames', 'Custos Exames', 'Lucro Clínica Líquido', 'Taxa TeleAmei'],
-                    datasets: [{ 
-                        label: 'Valores Financeiros (R$)', 
-                        data: [faturamentoConsultas, faturamentoExames, custoExames, lucroClinica, taxaTeleAmei], 
-                        backgroundColor: ['#3B82F6', '#14B8A6', '#EF4444', '#10B981', '#8B5CF6'] 
-                    }]
-                }
+                data: { labels: ['Consultas', 'Exames', 'Custos', 'Lucro', 'Taxa App'], datasets: [{ label: 'R$', data: [fConsultas, fExames, cExames, lucro, txTeleAmei], backgroundColor: ['#3B82F6', '#14B8A6', '#EF4444', '#10B981', '#8B5CF6'] }] }
             });
         }
-
         window.onload = validarAcesso;
     </script>
 </body>

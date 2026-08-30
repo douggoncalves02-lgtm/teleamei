@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestão de Dados & Relatórios - TeleAmei</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-slate-50 min-h-screen p-4 md:p-8">
+    
+    <!-- BARRA DE NAVEGAÇÃO -->
+    <div class="max-w-6xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4 mb-6 bg-emerald-900 text-white p-4 rounded-lg shadow-lg">
+        <div class="font-bold text-lg text-center md:text-left">TeleAmei 📥 | Central de Dados & Relatórios</div>
+        <div class="flex flex-wrap justify-center items-center gap-2 md:gap-4">
+            <span class="text-sm">Admin: <strong id="usuarioLogadoNome">...</strong></span>
+            <button onclick="window.location.href='dashboard.html'" class="bg-purple-600 hover:bg-purple-700 px-3 py-2 md:py-1 rounded text-sm font-bold shadow transition w-full md:w-auto">📊 Voltar ao BI</button>
+            <button onclick="window.location.href='crm_operacoes.html'" class="bg-indigo-600 hover:bg-indigo-700 px-3 py-2 md:py-1 rounded text-sm font-bold shadow transition w-full md:w-auto">CRM</button>
+        </div>
+    </div>
+
+    <!-- SEÇÃO DE PLANILHAS MODELO (DOWNLOAD DE TEMPLATES) -->
+    <div class="max-w-6xl mx-auto bg-white p-6 rounded-xl shadow-md border-t-4 border-emerald-500 mb-8">
+        <h2 class="text-lg font-bold text-emerald-900 mb-2">📋 Modelos Oficiais para Importação (Templates)</h2>
+        <p class="text-xs md:text-sm text-gray-600 mb-6">Baixe os modelos padronizados com o mapeamento exato das colunas aceitas pelo sistema antes de importar seus dados.</p>
+        
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div class="bg-emerald-50 p-4 rounded-lg border border-emerald-200 flex flex-col justify-between">
+                <div>
+                    <h3 class="font-bold text-emerald-900 text-sm mb-1">Modelo 1: Pacientes / Soluções</h3>
+                    <p class="text-xs text-emerald-700 mb-4">Mapeia dados de intenção de consulta de novos pacientes.</p>
+                </div>
+                <button onclick="downloadTemplate('pacientes')" class="bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-bold py-2 px-3 rounded shadow transition w-full text-center">
+                    ⬇️ Baixar Modelo Pacientes
+                </button>
+            </div>
+
+            <div class="bg-indigo-50 p-4 rounded-lg border border-indigo-200 flex flex-col justify-between">
+                <div>
+                    <h3 class="font-bold text-indigo-900 text-sm mb-1">Modelo 2: Atendimentos CRM</h3>
+                    <p class="text-xs text-indigo-700 mb-4">Mapeia agendas, valores, médicos e status de consultas.</p>
+                </div>
+                <button onclick="downloadTemplate('atendimentos')" class="bg-indigo-700 hover:bg-indigo-800 text-white text-xs font-bold py-2 px-3 rounded shadow transition w-full text-center">
+                    ⬇️ Baixar Modelo CRM
+                </button>
+            </div>
+
+            <div class="bg-purple-50 p-4 rounded-lg border border-purple-200 flex flex-col justify-between">
+                <div>
+                    <h3 class="font-bold text-purple-900 text-sm mb-1">Modelo 3: Colaboradores</h3>
+                    <p class="text-xs text-purple-700 mb-4">Mapeia cadastro em lote de médicos e operadores.</p>
+                </div>
+                <button onclick="downloadTemplate('usuarios')" class="bg-purple-700 hover:bg-purple-800 text-white text-xs font-bold py-2 px-3 rounded shadow transition w-full text-center">
+                    ⬇️ Baixar Modelo Usuários
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- PAINEL DE OPERAÇÃO (IMPORTAR E EXPORTAR) -->
+    <div class="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-8">
+        
+        <!-- CARD DE EXPORTAÇÃO -->
+        <div class="bg-white p-6 rounded-xl shadow-md border-t-4 border-indigo-600">
+            <h2 class="text-xl font-bold text-indigo-900 mb-2">Exportar Banco de Dados</h2>
+            <p class="text-xs md:text-sm text-gray-600 mb-6">Gere planilhas em CSV com todos os dados processados e auditados.</p>
+            
+            <div class="space-y-4 mb-6">
+                <div>
+                    <label class="block text-xs font-bold text-gray-700 mb-1">Módulo a Exportar</label>
+                    <select id="moduloExport" class="w-full px-4 py-2 border rounded-md text-sm bg-white">
+                        <option value="consultas">Esteira de Atendimentos / Consultas (CRM)</option>
+                        <option value="usuarios">Cadastro de Colaboradores e Médicos</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-gray-700 mb-1">Filtrar por Status</label>
+                    <select id="filtroStatusExport" class="w-full px-4 py-2 border rounded-md text-sm bg-white">
+                        <option value="todos">Todos os Registros</option>
+                        <option value="Concluído">Apenas Concluídos / Realizados</option>
+                        <option value="Agendado">Apenas Agendados</option>
+                        <option value="Aguardando agendamento">Aguardando Agendamento</option>
+                    </select>
+                </div>
+            </div>
+            
+            <button id="btnExportar" onclick="exportarCSV()" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 rounded-lg shadow transition flex items-center justify-center gap-2 text-sm uppercase">
+                ⬇️ Exportar Dados (.CSV)
+            </button>
+        </div>
+
+        <!-- CARD DE IMPORTAÇÃO -->
+        <div class="bg-white p-6 rounded-xl shadow-md border-t-4 border-emerald-600">
+            <h2 class="text-xl font-bold text-emerald-900 mb-2">Importar Registros em Lote</h2>
+            <p class="text-xs md:text-sm text-gray-600 mb-6">Selecione o módulo de destino e envie a planilha preenchida conforme o modelo.</p>
+
+            <div class="space-y-4 mb-6">
+                <div>
+                    <label class="block text-xs font-bold text-gray-700 mb-1">Módulo de Destino</label>
+                    <select id="moduloImport" class="w-full px-4 py-2 border rounded-md text-sm bg-white">
+                        <option value="nova_solicitacao">Intenção de Consulta (Solicitações Pacientes)</option>
+                        <option value="criar_usuario">Cadastro de Colaboradores / Médicos</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-gray-700 mb-1">Arquivo Planilha (.CSV)</label>
+                    <input type="file" id="arquivoCSV" accept=".csv" class="block w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-emerald-50 file:text-emerald-700 hover:file:bg-emerald-100">
+                </div>
+            </div>
+
+            <button id="btnImportar" onclick="importarCSV()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 rounded-lg shadow transition flex items-center justify-center gap-2 text-sm uppercase">
+                ⬆️ Processar e Salvar Lote
+            </button>
+            <div id="progressoImportacao" class="hidden mt-4 text-center text-sm font-bold text-emerald-600"></div>
+        </div>
+
+    </div>
+
+    <script>
+        const URL_API = "https://script.google.com/macros/s/AKfycby-1WKshFbFVNfQliUY65_krsep0MnR3HEi6JlYEUG7mSiPVHIwPwRdIlSVnXbVFVQm/exec";
+        let dadosConsultas = [];
+        let dadosUsuarios = [];
+
+        function validarAcesso() {
+            const sessao = localStorage.getItem("teleamei_sessao");
+            if (!sessao) { window.location.href = "login.html"; return; }
+            const user = JSON.parse(sessao);
+            if (user.perfil !== "Admin") { alert("Restrito a Administradores."); window.location.href = "crm_operacoes.html"; return; }
+            document.getElementById('usuarioLogadoNome').innerText = user.nome;
+            carregarBancos();
+        }
+
+        function carregarBancos() {
+            const btn = document.getElementById('btnExportar');
+            btn.innerText = "Carregando dados..."; btn.disabled = true;
+
+            // Busca Consultas
+            fetch(URL_API).then(res => res.json()).then(res => {
+                if(res.status === "sucesso") dadosConsultas = res.dados;
+                
+                // Busca Usuários
+                fetch(URL_API + "?acao=listar_usuarios").then(res2 => res2.json()).then(res2 => {
+                    if(res2.status === "sucesso") dadosUsuarios = res2.dados;
+                    btn.innerText = "⬇️ Exportar Dados (.CSV)"; btn.disabled = false;
+                });
+            });
+        }
+
+        // GERADOR DE MODELOS OFICIAIS (TEMPLATES)
+        function downloadTemplate(tipo) {
+            let colunas = [];
+            let nomeArquivo = "";
+
+            if (tipo === 'pacientes') {
+                colunas = ["paciente", "dataNascimento", "cpf", "telefone", "cartaoTodos", "diaPreferencia", "periodo", "especialidade"];
+                nomeArquivo = "template_modelo_pacientes.csv";
+            } else if (tipo === 'atendimentos') {
+                colunas = ["paciente", "telefone", "especialidade", "unidade", "medicoResponsavel", "dataAgendada", "horaAgendada", "linkMeet", "valorConsulta", "statusConsulta"];
+                nomeArquivo = "template_modelo_crm_atendimentos.csv";
+            } else if (tipo === 'usuarios') {
+                colunas = ["nome", "email", "telefone", "senha", "perfil", "crm", "especialidades", "unidades", "departamentos"];
+                nomeArquivo = "template_modelo_colaboradores.csv";
+            }
+
+            let csvContent = "data:text/csv;charset=utf-8,\uFEFF" + colunas.join(";") + "\n";
+            const encodedUri = encodeURI(csvContent);
+            const link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", nomeArquivo);
+            document.body.appendChild(link); link.click(); document.body.removeChild(link);
+        }
+
+        // EXPORTAÇÃO COMPLETA
+        function exportarCSV() {
+            const modulo = document.getElementById('moduloExport').value;
+            const filtro = document.getElementById('filtroStatusExport').value;
+            
+            let exportar = modulo === "consultas" ? dadosConsultas : dadosUsuarios;
+
+            if(exportar.length === 0) return alert("Nenhum dado encontrado para exportação.");
+
+            if(modulo === "consultas" && filtro !== "todos") {
+                exportar = exportar.filter(i => i.Status_Consulta === filtro);
+            }
+
+            if(exportar.length === 0) return alert("Nenhum dado encontrado para o filtro selecionado.");
+
+            const chaves = Object.keys(exportar[0]);
+            let csvContent = "data:text/csv;charset=utf-8,\uFEFF" + chaves.join(";") + "\n";
+
+            exportar.forEach(linha => {
+                const valores = chaves.map(k => {
+                    let val = linha[k] === null || linha[k] === undefined ? "" : linha[k].toString();
+                    return `"${val.replace(/"/g, '""')}"`;
+                });
+                csvContent += valores.join(";") + "\n";
+            });
+
+            const encodedUri = encodeURI(csvContent);
+            const link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", `teleamei_${modulo}_${new Date().toISOString().slice(0,10)}.csv`);
+            document.body.appendChild(link); link.click(); document.body.removeChild(link);
+        }
+
+        // IMPORTAÇÃO EM LOTE
+        function importarCSV() {
+            const fileInput = document.getElementById('arquivoCSV');
+            const acaoModulo = document.getElementById('moduloImport').value;
+
+            if(!fileInput.files.length) return alert("Selecione um arquivo CSV preenchido.");
+            
+            const btn = document.getElementById('btnImportar');
+            const prog = document.getElementById('progressoImportacao');
+            btn.disabled = true; prog.classList.remove('hidden'); prog.innerText = "Lendo arquivo...";
+
+            const reader = new FileReader();
+            reader.onload = async function(e) {
+                const texto = e.target.result;
+                const linhas = texto.split('\n').filter(l => l.trim() !== '');
+                const cabecalhos = linhas[0].toLowerCase().split(/[;,]/).map(c => c.trim().replace(/['"]/g, ''));
+                
+                let processados = 0;
+                for(let i = 1; i < linhas.length; i++) {
+                    const valores = linhas[i].split(/[;,]/).map(v => v.trim().replace(/['"]/g, ''));
+                    let payload = { acao: acaoModulo };
+                    
+                    cabecalhos.forEach((cab, index) => { 
+                        let val = valores[index] || "";
+                        // Trata arrays se for módulo de usuários
+                        if ((cab === "especialidades" || cab === "unidades" || cab === "departamentos") && val.includes(',')) {
+                            val = val.split(',').map(item => item.trim());
+                        }
+                        payload[cab] = val; 
+                    });
+                    
+                    prog.innerText = `Processando registro ${i} de ${linhas.length - 1}...`;
+                    await fetch(URL_API, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(payload) });
+                    processados++;
+                }
+                prog.innerText = `✅ Processamento concluído! ${processados} registros importados.`;
+                btn.disabled = false; fileInput.value = "";
+                carregarBancos();
+            };
+            reader.readAsText(fileInput.files[0], 'UTF-8');
+        }
+        window.onload = validarAcesso;
+    </script>
+</body>
+</html>

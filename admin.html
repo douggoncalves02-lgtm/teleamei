@@ -131,7 +131,7 @@
             templateOrcamento: (pac, med, valor) => `Olá ${pac}!\nSeu orçamento de exames realizados na clínica com o médico ${med} está pronto. Valor total: R$ ${valor}.\n\nComo prefere realizar o pagamento?`,
             templateDocumentos: (pac, med, linksListados, temExame) => {
                 let msg = `Olá ${pac}, aqui é da equipe TeleAmei! 💙\n\nConforme sua consulta com o(a) Dr(a). ${med}, seguem os links seguros para acessar seus documentos médicos:\n${linksListados}`;
-                if (temExame) msg += `\n\n⚠️ Em breve, nosso time entrará em contato com o orçamento completo para realização e instruções para os exames solicitados.`;
+                if (temExame) msg += `\n⚠️ Em breve, nosso time entrará em contato com o orçamento completo para realização e instruções para os exames solicitados.`;
                 msg += `\n\nQualquer dúvida, estamos à disposição!`;
                 return msg;
             }
@@ -157,7 +157,12 @@
                 let temExame = false;
                 
                 ativos.forEach(tag => { 
-                    linksFormatados += `\n📄 ${tag.nome}:\n${tag.url}\n`; 
+                    // Limpa o nome do arquivo para exibir apenas a categoria no WhatsApp
+                    let nomeCategoria = tag.nome.split(' - ')[0]; 
+                    if (nomeCategoria === 'Sol. Exames') nomeCategoria = 'Solicitação de Exames';
+                    if (nomeCategoria === 'Receita/Outros') nomeCategoria = 'Receita Médica / Outros';
+                    
+                    linksFormatados += `\n📄 *${nomeCategoria}*:\n${tag.url}\n`; 
                     if(tag.nome.includes('Sol. Exames')) temExame = true;
                 });
                 
@@ -180,11 +185,10 @@
             }
             if (usuarioLogado.perfil === "Medico") {
                 document.getElementById('blocoMedico').classList.remove('hidden');
-                document.getElementById('botoesMedico').classList.remove('hidden');
             } else { 
                 document.getElementById('botoesOperacao').classList.remove('hidden'); 
                 document.getElementById('blocoPreConsulta').classList.remove('hidden'); 
-                document.getElementById('botoesMedico').classList.remove('hidden'); // Liberado também para operação 
+                document.getElementById('botoesMedico').classList.remove('hidden');
             }
             carregarMedicos(); verificarModoEdicao();
         }
