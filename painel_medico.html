@@ -18,7 +18,7 @@
     </div>
 
     <div class="max-w-6xl mx-auto space-y-6">
-        <!-- BLOC OS DE CONFIGURAÇÃO DE DISPONIBILIDADE -->
+        <!-- BLOCOS DE CONFIGURAÇÃO DE DISPONIBILIDADE -->
         <div class="bg-white p-6 rounded-xl shadow-lg border-t-4 border-indigo-600">
             <div class="flex justify-between items-center cursor-pointer" onclick="toggleConfigAgenda()">
                 <h2 class="text-lg font-bold text-indigo-900 flex items-center gap-2">
@@ -55,6 +55,18 @@
         const URL_API = "https://script.google.com/macros/s/AKfycby-1WKshFbFVNfQliUY65_krsep0MnR3HEi6JlYEUG7mSiPVHIwPwRdIlSVnXbVFVQm/exec";
         let usuarioLogado = null;
         const diasSemana = ["Segunda-feira", "Terça-feira", "Quarta-feira", "Quinta-feira", "Sexta-feira", "Sábado"];
+
+        // FUNÇÃO DE LEITURA BLINDADA (Case-insensitive e compatível com várias colunas)
+        function lerValor(obj, possiveisChaves) {
+            const normalizedObj = {};
+            for (let key in obj) {
+                normalizedObj[key.toLowerCase().trim()] = obj[key];
+            }
+            for (let chave of possiveisChaves) {
+                if (normalizedObj[chave] !== undefined && normalizedObj[chave] !== null && normalizedObj[chave] !== "") return normalizedObj[chave];
+            }
+            return "";
+        }
 
         function validarAcesso() {
             const sessao = localStorage.getItem("teleamei_sessao");
@@ -131,7 +143,12 @@
             fetch(URL_API).then(res => res.json()).then(res => {
                 container.innerHTML = '';
                 if (res.status === "sucesso") {
-                    let consultas = res.dados.filter(c => c.Medico_Responsavel === usuarioLogado.nome && c.Status_Consulta !== "sim" && c.Status_Consulta !== "nao" && c.Status_Consulta !== "Concluído");
+                    
+                    let consultas = res.dados.filter(c => {
+                        const med = lerValor(c, ['medico_responsavel', 'medico responsavel', 'medico']);
+                        const status = lerValor(c, ['status_consulta', 'status consulta', 'status']);
+                        return med === usuarioLogado.nome && status !== "sim" && status !== "nao" && status !== "Concluído" && status !== "concluído";
+                    });
 
                     if (consultas.length === 0) {
                         container.innerHTML = '<div class="col-span-full text-center py-12 text-gray-500 border-2 border-dashed border-gray-300 rounded-lg">Agenda livre. Nenhum atendimento pendente no momento.</div>';
@@ -139,21 +156,45 @@
                     }
 
                     consultas.sort((a, b) => {
-                        const dataA = a.Data_Agendada ? new Date(`${a.Data_Agendada}T${a.Hora_Agendada || '00:00'}`) : new Date(a.Data_Registro || 0);
-                        const dataB = b.Data_Agendada ? new Date(`${b.Data_Agendada}T${b.Hora_Agendada || '00:00'}`) : new Date(b.Data_Registro || 0);
-                        return dataA - dataB;
+                        const dataA = lerValor(a, ['data_agendada', 'data agendada']);
+                        const horaA = lerValor(a, ['hora_agendada', 'hora agendada']);
+                        const regA = lerValor(a, ['data_registro', 'data registro']);
+                        
+                        const dataB = lerValor(b, ['data_agendada', 'data agendada']);
+                        const horaB = lerValor(b, ['hora_agendada', 'hora agendada']);
+                        const regB = lerValor(b, ['data_registro', 'data registro']);
+
+                        const dateA = dataA ? new Date(`${dataA}T${horaA || '00:00'}`) : new Date(regA || 0);
+                        const dateB = dataB ? new Date(`${dataB}T${horaB || '00:00'}`) : new Date(regB || 0);
+                        return dateA - dateB;
                     });
 
                     const agora = new Date();
                     consultas.forEach(c => {
-                        let dataStr = 'Data N/I'; let alertaBorda = "border-gray-200 bg-gray-50"; let tagUrgencia = "";
+                        const dataAgendada = lerValor(c, ['data_agendada', 'data agendada']);
+                        const horaAgendada = lerValor(c, ['hora_agendada', 'hora agendada']);
+                        const linkMeet = lerValor(c, ['link_meet', 'link google meet', 'meet']);
+                        const especialidade = lerValor(c, ['especialidade', 'especialidade_solicitada']);
+                        const paciente = lerValor(c, ['paciente', 'nome_paciente']);
+                        const unidade = lerValor(c, ['unidade', 'unidade_atendimento']);
+                        const statusConsulta = lerValor(c, ['status_consulta', 'status']);
+                        const idStr = lerValor(c, ['id', 'id_registro']);
 
-                        if (c.Data_Agendada) {
-                            const partesData = c.Data_Agendada.split('-');
-                            dataStr = partesData.length === 3 ? `${partesData[2]}/${partesData[1]}/${partesData[0]}` : c.Data_Agendada;
-                            if (c.Hora_Agendada) dataStr += ` às ${c.Hora_Agendada}`;
+                        let dataStr = 'Data N/I'; 
+                        let alertaBorda = "border-gray-200 bg-gray-50"; 
+                        let tagUrgencia = "";
 
-                            const dataConsulta = new Date(`${c.Data_Agendada}T${c.Hora_Agendada || '00:00'}`);
+                        if (dataAgendada) {
+                            if (String(dataAgendada).includes('T')) {
+                                const d = new Date(dataAgendada);
+                                dataStr = d.toLocaleDateString('pt-BR');
+                            } else {
+                                const partesData = String(dataAgendada).split('-');
+                                dataStr = partesData.length === 3 ? `${partesData[2]}/${partesData[1]}/${partesData[0]}` : dataAgendada;
+                            }
+                            if (horaAgendada) dataStr += ` às ${horaAgendada}`;
+
+                            const dataConsulta = new Date(`${dataAgendada}T${horaAgendada || '00:00'}`);
                             if (!isNaN(dataConsulta)) {
                                 const diffMinutos = (dataConsulta - agora) / (1000 * 60);
                                 if (diffMinutos <= 30 && diffMinutos >= -180) {
@@ -163,8 +204,8 @@
                             }
                         }
 
-                        let botaoMeet = c.Link_Meet 
-                            ? `<a href="${c.Link_Meet}" target="_blank" class="block text-center text-xs font-bold text-green-700 hover:underline mb-3">🎥 Entrar na Videochamada</a>` 
+                        let botaoMeet = linkMeet 
+                            ? `<a href="${linkMeet}" target="_blank" class="block text-center text-xs font-bold text-green-700 hover:underline mb-3">🎥 Entrar na Videochamada</a>` 
                             : `<span class="block text-center text-xs text-red-500 mb-3">Sem Link de Reunião</span>`;
 
                         container.innerHTML += `
@@ -172,17 +213,17 @@
                                 <div>
                                     ${tagUrgencia}
                                     <div class="flex justify-between items-start mb-2">
-                                        <span class="text-xs font-bold uppercase px-2 py-1 bg-blue-100 text-blue-800 rounded">${c.Especialidade || 'Consulta'}</span>
+                                        <span class="text-xs font-bold uppercase px-2 py-1 bg-blue-100 text-blue-800 rounded">${especialidade || 'Consulta'}</span>
                                         <span class="text-xs font-bold text-indigo-900">${dataStr}</span>
                                     </div>
-                                    <h3 class="text-lg font-bold text-gray-800">${c.Paciente || 'Sem Nome'}</h3>
-                                    <p class="text-xs text-gray-600 mt-1">Unidade: <strong>${c.Unidade || 'N/A'}</strong></p>
-                                    <p class="text-xs text-gray-600">Status: <span class="font-bold text-indigo-700 uppercase">${c.Status_Consulta || 'Pendente'}</span></p>
+                                    <h3 class="text-lg font-bold text-gray-800">${paciente || 'Sem Nome'}</h3>
+                                    <p class="text-xs text-gray-600 mt-1">Unidade: <strong>${unidade || 'N/A'}</strong></p>
+                                    <p class="text-xs text-gray-600">Status: <span class="font-bold text-indigo-700 uppercase">${statusConsulta || 'Pendente'}</span></p>
                                 </div>
 
                                 <div class="mt-4 pt-4 border-t border-gray-200">
                                     ${botaoMeet}
-                                    <button onclick="abrirAtendimento('${c.ID || c.id}')" class="w-full bg-blue-600 text-white py-2 rounded text-xs font-bold hover:bg-blue-700 shadow">
+                                    <button onclick="abrirAtendimento('${idStr}')" class="w-full bg-blue-600 text-white py-2 rounded text-xs font-bold hover:bg-blue-700 shadow">
                                         Acessar Prontuário
                                     </button>
                                 </div>
