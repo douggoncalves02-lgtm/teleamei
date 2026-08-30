@@ -21,13 +21,13 @@
         
         <div class="border-b pb-6 mb-6">
             <h1 class="text-2xl font-bold text-blue-900">Sua Agenda de Atendimentos</h1>
-            <p class="text-sm text-gray-500">Abaixo estão os pacientes direcionados para você.</p>
+            <p class="text-sm text-gray-500">Ordenado por horário de atendimento. Pacientes com alerta vermelho necessitam de atenção imediata.</p>
         </div>
 
         <!-- Grid de Pacientes -->
         <div id="gridPacientes" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             <div class="col-span-full text-center py-12 text-blue-600 font-bold">
-                Buscando sua agenda na nuvem...
+                Buscando sua agenda e prioridades...
             </div>
         </div>
 
@@ -37,17 +37,11 @@
         const URL_API = "https://script.google.com/macros/s/AKfycby-1WKshFbFVNfQliUY65_krsep0MnR3HEi6JlYEUG7mSiPVHIwPwRdIlSVnXbVFVQm/exec";
         let usuarioLogado = null;
 
-        // 1. VALIDAÇÃO DE SESSÃO
         function validarAcesso() {
             const sessao = localStorage.getItem("teleamei_sessao");
-            if (!sessao) {
-                alert("Acesso negado. Faça o login.");
-                window.location.href = "login.html";
-                return;
-            }
+            if (!sessao) { window.location.href = "login.html"; return; }
             usuarioLogado = JSON.parse(sessao);
             
-            // Segurança Adicional: Se não for médico, expulsa
             if (usuarioLogado.perfil !== "Medico") {
                 alert("Área restrita para médicos.");
                 window.location.href = "login.html";
@@ -55,8 +49,6 @@
             }
 
             document.getElementById('usuarioLogadoNome').innerText = usuarioLogado.nome;
-            
-            // Inicia a busca automática da agenda
             carregarAgendaMedica();
         }
 
@@ -65,7 +57,6 @@
             window.location.href = "login.html";
         }
 
-        // 2. BUSCA AS CONSULTAS ESPECÍFICAS DESTE MÉDICO
         function carregarAgendaMedica() {
             const container = document.getElementById('gridPacientes');
 
@@ -75,35 +66,81 @@
                     container.innerHTML = '';
                     if (res.status === "sucesso") {
                         
-                        // ⭐️ O Segredo: Filtra apenas onde o Medico_Responsavel é igual ao nome de quem logou!
-                        const consultas = res.dados.filter(c => c.Medico_Responsavel === usuarioLogado.nome);
+                        // 1. FILTRO: Apenas pacientes do médico logado e que não foram concluídos
+                        let consultas = res.dados.filter(c => c.Medico_Responsavel === usuarioLogado.nome && c.Status_Consulta !== "sim" && c.Status_Consulta !== "nao" && c.Status_Consulta !== "Concluído");
 
                         if (consultas.length === 0) {
-                            container.innerHTML = '<div class="col-span-full text-center py-12 text-gray-500 text-lg border-2 border-dashed border-gray-300 rounded-lg">Nenhum paciente agendado para você até o momento.</div>';
+                            container.innerHTML = '<div class="col-span-full text-center py-12 text-gray-500 text-lg border-2 border-dashed border-gray-300 rounded-lg">Agenda livre. Nenhum atendimento pendente no momento.</div>';
                             return;
                         }
 
+                        // 2. ORDENAÇÃO: Mais próximo primeiro (Fallback de segurança para registros antigos)
+                        consultas.sort((a, b) => {
+                            const dataA = a.Data_Agendada ? new Date(`${a.Data_Agendada}T${a.Hora_Agendada || '00:00'}`) : new Date(a.Data_Registro || 0);
+                            const dataB = b.Data_Agendada ? new Date(`${b.Data_Agendada}T${b.Hora_Agendada || '00:00'}`) : new Date(b.Data_Registro || 0);
+                            return dataA - dataB;
+                        });
+
+                        // 3. RENDERIZAÇÃO E ALERTAS (SLA)
+                        const agora = new Date();
+
                         consultas.forEach(c => {
-                            const dataFormatada = c.Data_Registro ? new Date(c.Data_Registro).toLocaleDateString('pt-BR') : 'Data N/I';
-                            
+                            let dataStr = 'Data N/I';
+                            let alertaBorda = "border-gray-200 bg-gray-50";
+                            let tagUrgencia = "";
+
+                            // Lógica de Formatação e Correção do "Invalid Date"
+                            if (c.Data_Agendada) {
+                                const partesData = c.Data_Agendada.split('-');
+                                if (partesData.length === 3) {
+                                    dataStr = `${partesData[2]}/${partesData[1]}/${partesData[0]}`;
+                                } else {
+                                    const parsedDate = new Date(c.Data_Agendada);
+                                    if (!isNaN(parsedDate)) dataStr = parsedDate.toLocaleDateString('pt-BR');
+                                }
+
+                                if (c.Hora_Agendada) {
+                                    dataStr += ` às ${c.Hora_Agendada}`;
+                                }
+
+                                // Validação do Alerta SLA Médico
+                                const dataConsulta = new Date(`${c.Data_Agendada}T${c.Hora_Agendada || '00:00'}`);
+                                if (!isNaN(dataConsulta)) {
+                                    const diffMinutos = (dataConsulta - agora) / (1000 * 60);
+
+                                    // Regra: Alerta vermelho para consultas nos próximos 30 minutos ou já em atraso.
+                                    if (diffMinutos <= 30 && diffMinutos >= -180) {
+                                        alertaBorda = "border-red-500 border-2 bg-red-50 shadow-md";
+                                        tagUrgencia = `<div class="text-xs font-bold text-red-600 mb-2 flex items-center gap-1"><span class="animate-pulse">🚨</span> Atenção Imediata</div>`;
+                                    }
+                                }
+                            } else if (c.Data_Registro) {
+                                // Fallback para os testes de homologação antigos
+                                const d = new Date(c.Data_Registro);
+                                if (!isNaN(d)) dataStr = d.toLocaleDateString('pt-BR');
+                            }
+
+                            // Botão dinâmico do Google Meet
+                            let botaoMeet = c.Link_Meet 
+                                ? `<a href="${c.Link_Meet}" target="_blank" class="block text-center text-xs font-bold text-green-700 hover:underline mb-3">🎥 Entrar na Videochamada</a>` 
+                                : `<span class="block text-center text-xs text-red-500 mb-3">Sem Link de Reunião</span>`;
+
                             container.innerHTML += `
-                                <div class="bg-gray-50 rounded-lg p-5 border border-gray-200 shadow-sm flex flex-col justify-between hover:shadow-md transition">
+                                <div class="rounded-lg p-5 border ${alertaBorda} shadow-sm flex flex-col justify-between hover:shadow-md transition">
                                     <div>
+                                        ${tagUrgencia}
                                         <div class="flex justify-between items-start mb-2">
                                             <span class="text-xs font-bold uppercase px-2 py-1 bg-blue-100 text-blue-800 rounded">${c.Especialidade || 'Consulta'}</span>
-                                            <span class="text-xs text-gray-500">${dataFormatada}</span>
+                                            <span class="text-xs font-bold text-indigo-900">${dataStr}</span>
                                         </div>
                                         <h3 class="text-lg font-bold text-gray-800">${c.Paciente || 'Sem Nome'}</h3>
                                         <p class="text-xs text-gray-600 mt-1">Unidade: <strong>${c.Unidade || 'N/A'}</strong></p>
-                                        <p class="text-xs text-gray-600">Status: <span class="font-bold text-indigo-700">${c.Status_Consulta || 'Pendente'}</span></p>
+                                        <p class="text-xs text-gray-600">Status: <span class="font-bold text-indigo-700 uppercase">${c.Status_Consulta || 'Pendente'}</span></p>
                                     </div>
 
                                     <div class="mt-4 pt-4 border-t border-gray-200">
-                                        ${c.Link_Anexo && c.Link_Anexo !== 'Sem anexo' ? 
-                                            `<a href="${c.Link_Anexo}" target="_blank" class="block text-center text-xs font-bold text-blue-600 hover:text-blue-800 hover:underline mb-3">📄 Visualizar Anexo / Pedido</a>` : 
-                                            '<span class="block text-center text-xs text-gray-400 mb-3">Sem documentos anexados</span>'}
-                                        
-                                        <button onclick="abrirAtendimento('${c.ID}')" class="w-full bg-blue-600 text-white py-2 rounded text-xs font-bold hover:bg-blue-700 shadow">
+                                        ${botaoMeet}
+                                        <button onclick="abrirAtendimento('${c.ID || c.id}')" class="w-full bg-blue-600 text-white py-2 rounded text-xs font-bold hover:bg-blue-700 shadow">
                                             Acessar Prontuário
                                         </button>
                                     </div>
@@ -113,16 +150,14 @@
                     }
                 })
                 .catch(err => {
-                    container.innerHTML = '<div class="col-span-full text-center py-12 text-red-500 font-bold">Erro ao carregar agenda. Verifique sua internet.</div>';
+                    container.innerHTML = '<div class="col-span-full text-center py-12 text-red-500 font-bold">Erro ao carregar agenda. Verifique sua conexão com a internet.</div>';
                 });
         }
 
-       function abrirAtendimento(id) {
-            // Joga o médico para o formulário passando o ID pela URL
+        function abrirAtendimento(id) {
             window.location.href = `admin.html?id=${id}`;
         }
 
-        // Dá a partida assim que a tela abre
         window.onload = validarAcesso;
     </script>
 </body>
