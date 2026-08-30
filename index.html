@@ -5,15 +5,31 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>TeleAmei 💙 | Telemedicina Rápida, Segura e Descomplicada</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Animação suave e humanizada de Batimento Cardíaco */
+        @keyframes heartbeat {
+            0% { transform: scale(1); }
+            15% { transform: scale(1.15); }
+            30% { transform: scale(1); }
+            45% { transform: scale(1.15); }
+            60% { transform: scale(1); }
+            100% { transform: scale(1); }
+        }
+        .animate-heartbeat {
+            display: inline-block;
+            animation: heartbeat 2s infinite;
+            transform-origin: center;
+        }
+    </style>
 </head>
 <body class="bg-slate-50 font-sans text-slate-800 antialiased">
 
     <!-- HEADER RESPONSIVO -->
     <header class="sticky top-0 z-50 bg-white/90 backdrop-blur-md border-b border-slate-100 shadow-sm relative">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
-            <!-- Logo -->
+            <!-- Logo com Coração Pulsante -->
             <div class="flex items-center space-x-2">
-                <span class="text-3xl font-black text-indigo-900 tracking-tight">TeleAmei <span class="text-blue-500">💙</span></span>
+                <span class="text-3xl font-black text-indigo-900 tracking-tight">TeleAmei <span class="text-blue-500 animate-heartbeat">💙</span></span>
             </div>
 
             <!-- Navegação Desktop -->
@@ -271,7 +287,7 @@
     <!-- FOOTER INSTITUCIONAL -->
     <footer class="bg-indigo-950 text-slate-400 py-8 border-t border-indigo-900/50">
         <div class="max-w-7xl mx-auto px-4 text-center text-xs space-y-2">
-            <p class="font-bold text-white text-sm">TeleAmei 💙 - Plataforma de Telemedicina</p>
+            <p class="font-bold text-white text-sm">TeleAmei <span class="text-blue-500 animate-heartbeat">💙</span> - Plataforma de Telemedicina</p>
             <p>Atendimento médico à distância com total respeito às normas de saúde e privacidade.</p>
             <p class="pt-4 text-slate-500">© TeleAmei. Todos os direitos reservados. | Criado por DG</p>
         </div>
