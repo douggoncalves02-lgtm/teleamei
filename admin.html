@@ -212,10 +212,11 @@
                         const unds = u.Unidades_Vinculadas || u.unidades || u.Unidades || "";
                         if (unds) unds.split(',').forEach(un => { if (un.trim() !== "") setUnd.add(un.trim()); });
                         
-                        const perfil = (u.Perfil || u.perfil || "").toLowerCase();
-                        const status = (u.Status || u.status || "").toLowerCase();
+                        const perfil = String(u.Perfil || u.perfil || "").toLowerCase().trim();
+                        const status = String(u.Status || u.status || "").toLowerCase().trim();
+                        
                         if (perfil === "medico" && status === "ativo") {
-                            const nomeM = u.Nome_Completo || u.nome || u.Nome;
+                            const nomeM = u.Nome_Completo || u.nome || u.Nome || "";
                             if (nomeM) {
                                 const op = document.createElement('option');
                                 op.value = nomeM; op.innerText = nomeM;
@@ -233,6 +234,20 @@
             });
         }
 
+        // LEITURA BLINDADA EXPANDIDA
+        function lerValor(obj, possiveisChaves) {
+            const normalizedObj = {};
+            for (let key in obj) {
+                normalizedObj[key.toLowerCase().trim()] = obj[key];
+            }
+            for (let chave of possiveisChaves) {
+                if (normalizedObj[chave] !== undefined && normalizedObj[chave] !== null && normalizedObj[chave] !== "") {
+                    return normalizedObj[chave];
+                }
+            }
+            return "";
+        }
+
         function verificarModoEdicao() {
             idEdicao = new URLSearchParams(window.location.search).get('id');
             if (idEdicao) {
@@ -245,32 +260,24 @@
             }
         }
 
-        // FUNÇÃO DE LEITURA BLINDADA CONTRA CASE-SENSITIVE DA API
-        function lerValor(obj, possiveisChaves) {
-            for (let chave in obj) {
-                if (possiveisChaves.includes(chave.toLowerCase())) return obj[chave];
-            }
-            return "";
-        }
-
         function preencherFormulario(dados) {
-            document.getElementById('nomePaciente').value = lerValor(dados, ['paciente', 'nome_paciente']);
+            document.getElementById('nomePaciente').value = lerValor(dados, ['paciente', 'nome', 'nome_paciente', 'nome paciente']);
             document.getElementById('telefonePaciente').value = lerValor(dados, ['telefone', 'whatsapp', 'contato']);
-            document.getElementById('especialidadeAgendada').value = lerValor(dados, ['especialidade', 'especialidade_solicitada']);
+            document.getElementById('especialidadeAgendada').value = lerValor(dados, ['especialidade', 'especialidade_solicitada', 'especialidade solicitada']);
             
-            document.getElementById('dataAgendada').value = lerValor(dados, ['data_agendada', 'data']);
-            document.getElementById('horaAgendada').value = lerValor(dados, ['hora_agendada', 'hora']);
-            document.getElementById('linkMeet').value = lerValor(dados, ['link_meet', 'meet']);
+            document.getElementById('dataAgendada').value = lerValor(dados, ['data_agendada', 'data agendada', 'data']);
+            document.getElementById('horaAgendada').value = lerValor(dados, ['hora_agendada', 'hora agendada', 'hora']);
+            document.getElementById('linkMeet').value = lerValor(dados, ['link_meet', 'link google meet', 'link meet', 'meet']);
             
-            document.getElementById('valorConsulta').value = lerValor(dados, ['valor_consulta', 'valor']);
-            document.getElementById('orcamentoTotal').value = lerValor(dados, ['total_exames', 'exames']);
-            document.getElementById('orcamentoCusto').value = lerValor(dados, ['custo_exames', 'custo']);
+            document.getElementById('valorConsulta').value = lerValor(dados, ['valor_consulta', 'valor consulta', 'valor']);
+            document.getElementById('orcamentoTotal').value = lerValor(dados, ['total_exames', 'total exames', 'exames']);
+            document.getElementById('orcamentoCusto').value = lerValor(dados, ['custo_exames', 'custo exames', 'custo']);
             
-            const statusAtual = lerValor(dados, ['status_consulta', 'status']) || "Aguardando agendamento";
+            const statusAtual = lerValor(dados, ['status_consulta', 'status consulta', 'status']) || "Aguardando agendamento";
             document.getElementById('statusOperacao').value = statusAtual;
             if (statusAtual === "sim" || statusAtual === "nao") document.getElementById('statusMedico').value = statusAtual;
 
-            const anexoBruto = lerValor(dados, ['link_anexo', 'anexo']);
+            const anexoBruto = lerValor(dados, ['link_anexo', 'link anexo', 'anexo']);
             anexosGlobais = [];
             if (anexoBruto && anexoBruto !== "Sem anexo") {
                 try { anexosGlobais = JSON.parse(anexoBruto); } 
@@ -283,8 +290,8 @@
             renderizarAnexos();
 
             setTimeout(() => { 
-                const medBD = lerValor(dados, ['medico_responsavel', 'medico']);
-                const undBD = lerValor(dados, ['unidade']);
+                const medBD = lerValor(dados, ['medico_responsavel', 'medico responsavel', 'medico']);
+                const undBD = lerValor(dados, ['unidade', 'unidade de atendimento', 'unidade_atendimento']);
                 if (medBD) document.getElementById('medicoResponsavel').value = medBD;
                 if (undBD) document.getElementById('unidadeAtendimento').value = undBD; 
             }, 800);
