@@ -6,11 +6,11 @@
     <title>Gestão de Usuários - TeleAmei</title>
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="bg-gray-100 min-h-screen p-8">
+<body class="bg-gray-100 min-h-screen p-4 md:p-8">
 
     <!-- BARRA DE NAVEGAÇÃO -->
-    <div class="max-w-4xl mx-auto flex justify-between items-center mb-6 bg-indigo-900 text-white p-4 rounded-lg shadow">
-        <div class="font-bold text-lg">TeleAmei 💙 | Gestão de Usuários</div>
+    <div class="max-w-5xl mx-auto flex justify-between items-center mb-6 bg-indigo-900 text-white p-4 rounded-lg shadow">
+        <div class="font-bold text-lg">TeleAmei 💙 | Gestão de Equipe & Permissões</div>
         <div class="flex items-center space-x-3">
             <span class="text-sm">Admin: <strong id="usuarioLogadoNome">Carregando...</strong></span>
             <button onclick="window.location.href='dashboard.html'" class="bg-purple-600 hover:bg-purple-700 px-3 py-1 rounded text-sm font-bold shadow transition">📊 BI</button>
@@ -18,118 +18,204 @@
             <button onclick="fazerLogout()" class="bg-red-500 hover:bg-red-600 px-3 py-1 rounded text-sm font-bold shadow transition">Sair</button>
         </div>
     </div>
-    
-    <div class="max-w-4xl mx-auto bg-white p-8 rounded-xl shadow-lg border-t-4 border-indigo-800">
-        <h1 class="text-2xl font-bold text-indigo-800 mb-6">Cadastrar Novo Colaborador</h1>
 
-        <form id="formUsuario" class="space-y-6">
-            <!-- Dados Básicos -->
-            <div class="grid grid-cols-2 gap-4 bg-gray-50 p-4 rounded-lg border border-gray-200">
-                <div class="col-span-2"><label class="block text-sm font-medium text-gray-700">Nome Completo</label><input type="text" id="nome" class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md"></div>
-                <div><label class="block text-sm font-medium text-gray-700">Telefone / WhatsApp</label><input type="tel" id="telefone" placeholder="(11) 99999-9999" class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md"></div>
-                <div><label class="block text-sm font-medium text-gray-700">E-mail (Login)</label><input type="email" id="email" class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md"></div>
-                <div><label class="block text-sm font-medium text-gray-700">Senha Provisória</label><input type="password" id="senha" class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md"></div>
-                
-                <div class="mt-4 col-span-2 md:col-span-1">
-                    <label class="block text-sm font-medium text-indigo-900 mb-2">Perfil de Acesso</label>
-                    <select id="perfil" onchange="alternarCampos()" class="w-full border-2 border-indigo-300 p-2 rounded font-bold bg-white">
-                        <option value="">Selecione o Nível...</option>
-                        <option value="Admin">Administrativo (Acesso Total)</option>
-                        <option value="Medico">Médico (Corpo Clínico)</option>
-                        <option value="Usuario">Operação (Recepção/Gestão)</option>
-                    </select>
+    <div class="max-w-5xl mx-auto space-y-8">
+        <!-- BLOCO 1: EMISSOR DE COMUNICADOS INTERNOS -->
+        <div class="bg-white p-6 rounded-xl shadow-lg border-t-4 border-amber-500">
+            <h2 class="text-lg font-bold text-amber-900 mb-2 flex items-center gap-2">
+                <span>📢</span> Disparar Comunicado Interno (Aviso Global)
+            </h2>
+            <p class="text-xs text-gray-500 mb-4">Este aviso aparecerá bloqueando a tela de todos os operadores e usuários até que cliquem em "Estou ciente da informação".</p>
+            
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-xs font-bold text-gray-700 uppercase">Título do Aviso</label>
+                    <input type="text" id="tituloAviso" placeholder="Ex: Nova atualização do sistema de exames" class="mt-1 block w-full px-4 py-2 border rounded-md text-sm">
                 </div>
+                <div>
+                    <label class="block text-xs font-bold text-gray-700 uppercase">Mensagem Detalhada</label>
+                    <textarea id="mensagemAviso" placeholder="Descreva as instruções..." class="mt-1 block w-full px-4 py-2 border rounded-md text-sm h-20"></textarea>
+                </div>
+                <button onclick="dispararAviso()" class="bg-amber-600 hover:bg-amber-700 text-white font-bold py-2.5 px-6 rounded-lg text-xs shadow transition">
+                    Disparar Comunicado Obrigatório
+                </button>
             </div>
+        </div>
 
-            <!-- Módulo Médico -->
-            <div id="camposMedico" class="hidden bg-blue-50 p-4 rounded-lg border border-blue-200">
-                <div class="grid grid-cols-2 gap-4 mb-4">
-                    <div><label class="block text-sm font-medium text-blue-900">CRM</label><input type="text" id="crm" class="mt-1 block w-full px-4 py-2 border border-blue-300 rounded-md"></div>
-                    <div>
-                        <label class="block text-sm font-medium text-blue-900">Especialidades (Segure Ctrl para várias)</label>
-                        <select id="especialidades" multiple class="mt-1 block w-full px-4 py-2 border border-blue-300 rounded-md h-24 bg-white">
-                            <option value="Cardiologia">Cardiologia</option>
-                            <option value="Pediatria">Pediatria</option>
-                            <option value="Clínico Geral">Clínico Geral</option>
-                            <option value="Dermatologia">Dermatologia</option>
-                            <option value="Psicologia">Psicologia</option>
+        <!-- BLOCO 2: CADASTRO DE NOVO COLABORADOR -->
+        <div class="bg-white p-6 rounded-xl shadow-lg border-t-4 border-indigo-800">
+            <h2 class="text-xl font-bold text-indigo-800 mb-6">Cadastrar Novo Colaborador</h2>
+
+            <form id="formUsuario" class="space-y-6">
+                <div class="grid grid-cols-2 gap-4 bg-gray-50 p-4 rounded-lg border border-gray-200">
+                    <div class="col-span-2"><label class="block text-sm font-medium text-gray-700">Nome Completo</label><input type="text" id="nome" class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md"></div>
+                    <div><label class="block text-sm font-medium text-gray-700">Telefone / WhatsApp</label><input type="tel" id="telefone" placeholder="(11) 99999-9999" class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md"></div>
+                    <div><label class="block text-sm font-medium text-gray-700">E-mail (Login)</label><input type="email" id="email" class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md"></div>
+                    <div><label class="block text-sm font-medium text-gray-700">Senha Provisória</label><input type="password" id="senha" class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md"></div>
+                    
+                    <div class="mt-4 col-span-2 md:col-span-1">
+                        <label class="block text-sm font-medium text-indigo-900 mb-2">Perfil de Acesso</label>
+                        <select id="perfil" onchange="alternarCampos()" class="w-full border-2 border-indigo-300 p-2 rounded font-bold bg-white">
+                            <option value="">Selecione o Nível...</option>
+                            <option value="Admin">Administrativo (Acesso Total)</option>
+                            <option value="Medico">Médico (Corpo Clínico)</option>
+                            <option value="Usuario">Operação (Recepção/Gestão)</option>
                         </select>
                     </div>
                 </div>
-                <div class="mb-4">
-                    <label class="block text-sm font-medium text-blue-900">Foto de Perfil (Opcional)</label>
-                    <input type="file" id="fotoMedico" accept="image/*" class="mt-1 block w-full bg-white p-2 border border-blue-200 rounded cursor-pointer">
-                </div>
-                <div><label class="block text-sm font-medium text-blue-900">Apresentação Profissional</label><textarea id="apresentacao" class="mt-1 block w-full px-4 py-2 border border-blue-300 rounded-md h-20"></textarea></div>
-            </div>
 
-            <!-- Módulo Usuário/Recepção -->
-            <div id="camposUsuario" class="hidden bg-green-50 p-4 rounded-lg border border-green-200">
-                <div class="grid grid-cols-2 gap-4">
-                    <div>
-                        <label class="block text-sm font-medium text-green-900">Unidades Vinculadas</label>
-                        <select id="unidades" multiple class="mt-1 block w-full px-4 py-2 border border-green-300 rounded-md h-24 bg-white">
-                            <option value="Cotia">Cotia</option>
-                            <option value="Barretos">Barretos</option>
-                            <option value="Camaragibe">Camaragibe</option>
-                            <option value="Campinas">Campinas</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-green-900">Departamentos</label>
-                        <select id="departamentos" multiple class="mt-1 block w-full px-4 py-2 border border-green-300 rounded-md h-24 bg-white">
-                            <option value="Agendamento">Agendamento</option>
-                            <option value="Pós-consulta">Pós-consulta</option>
-                            <option value="Financeiro">Recebimentos/Financeiro</option>
-                        </select>
+                <div id="camposMedico" class="hidden bg-blue-50 p-4 rounded-lg border border-blue-200">
+                    <div class="grid grid-cols-2 gap-4 mb-4">
+                        <div><label class="block text-sm font-medium text-blue-900">CRM</label><input type="text" id="crm" class="mt-1 block w-full px-4 py-2 border border-blue-300 rounded-md"></div>
+                        <div>
+                            <label class="block text-sm font-medium text-blue-900">Especialidades</label>
+                            <select id="especialidades" multiple class="mt-1 block w-full px-4 py-2 border border-blue-300 rounded-md h-24 bg-white">
+                                <option value="Cardiologia">Cardiologia</option>
+                                <option value="Pediatria">Pediatria</option>
+                                <option value="Clínico Geral">Clínico Geral</option>
+                                <option value="Dermatologia">Dermatologia</option>
+                            </select>
+                        </div>
                     </div>
                 </div>
-            </div>
 
-            <button type="button" onclick="montarPayload()" class="w-full bg-indigo-800 text-white py-4 rounded-xl font-bold hover:bg-indigo-900 transition duration-300 shadow-md uppercase">
-                Cadastrar Colaborador
-            </button>
-        </form>
+                <div id="camposUsuario" class="hidden bg-green-50 p-4 rounded-lg border border-green-200">
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-green-900">Unidades</label>
+                            <select id="unidades" multiple class="mt-1 block w-full px-4 py-2 border border-green-300 rounded-md h-24 bg-white">
+                                <option value="Cotia">Cotia</option>
+                                <option value="Barretos">Barretos</option>
+                                <option value="Campinas">Campinas</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-green-900">Departamentos</label>
+                            <select id="departamentos" multiple class="mt-1 block w-full px-4 py-2 border border-green-300 rounded-md h-24 bg-white">
+                                <option value="Agendamento">Agendamento</option>
+                                <option value="Pós-consulta">Pós-consulta</option>
+                                <option value="Financeiro">Financeiro</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <button type="button" onclick="montarPayload()" class="w-full bg-indigo-800 text-white py-3.5 rounded-xl font-bold hover:bg-indigo-900 transition shadow-md uppercase">
+                    Cadastrar Colaborador
+                </button>
+            </form>
+        </div>
+
+        <!-- BLOCO 3: LISTA E CONTROLE DE ATIVAÇÃO DE USUÁRIOS (AUSÊNCIAS / FÉRIAS) -->
+        <div class="bg-white p-6 rounded-xl shadow-lg border-t-4 border-slate-700">
+            <h2 class="text-xl font-bold text-slate-800 mb-4">Quadro de Colaboradores e Escala de Ausências</h2>
+            <p class="text-xs text-gray-500 mb-6">Usuários marcados como "Ausente" são automaticamente removidos da esteira de distribuição de novas consultas.</p>
+
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse text-sm">
+                    <thead>
+                        <tr class="bg-slate-100 border-b text-slate-700 text-xs uppercase">
+                            <th class="p-3">Nome</th>
+                            <th class="p-3">E-mail</th>
+                            <th class="p-3">Perfil</th>
+                            <th class="p-3 text-center">Status Fila</th>
+                            <th class="p-3 text-center">Ação</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tabelaUsuarios">
+                        <tr><td colspan="5" class="p-4 text-center text-gray-500">Carregando quadro de equipe...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
     </div>
 
     <script>
-        // Trava de Segurança Admin
+        const URL_API = "https://script.google.com/macros/s/AKfycby-1WKshFbFVNfQliUY65_krsep0MnR3HEi6JlYEUG7mSiPVHIwPwRdIlSVnXbVFVQm/exec";
+
         function validarAcesso() {
             const sessao = localStorage.getItem("teleamei_sessao");
             if (!sessao) { window.location.href = "login.html"; return; }
             const usuarioLogado = JSON.parse(sessao);
-            
             if (usuarioLogado.perfil !== "Admin") {
-                alert("Acesso restrito. Apenas Administradores podem cadastrar novos usuários.");
+                alert("Acesso restrito a Administradores.");
                 window.location.href = "crm_operacoes.html";
                 return;
             }
             document.getElementById('usuarioLogadoNome').innerText = usuarioLogado.nome;
+            carregarTabelaUsuarios();
         }
 
         function fazerLogout() { localStorage.removeItem("teleamei_sessao"); window.location.href = "login.html"; }
+
+        function carregarTabelaUsuarios() {
+            fetch(`${URL_API}?acao=listar_usuarios`).then(res => res.json()).then(res => {
+                const tbody = document.getElementById('tabelaUsuarios');
+                tbody.innerHTML = "";
+                if (res.status === "sucesso") {
+                    res.dados.forEach(u => {
+                        const statusAtivo = u.Status === "Ativo";
+                        const badgeClass = statusAtivo ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800";
+                        const textoBtn = statusAtivo ? "Marcar Ausente" : "Ativar na Fila";
+                        const classBtn = statusAtivo ? "bg-red-500 hover:bg-red-600" : "bg-green-600 hover:bg-green-700";
+                        const novoStatus = statusAtivo ? "Ausente" : "Ativo";
+
+                        tbody.innerHTML += `
+                            <tr class="border-b hover:bg-slate-50">
+                                <td class="p-3 font-bold text-slate-800">${u.Nome_Completo}</td>
+                                <td class="p-3 text-gray-600 text-xs">${u.Email}</td>
+                                <td class="p-3 font-semibold">${u.Perfil}</td>
+                                <td class="p-3 text-center"><span class="px-2 py-1 rounded text-xs font-bold ${badgeClass}">${u.Status}</span></td>
+                                <td class="p-3 text-center">
+                                    <button onclick="alternarStatus('${u.ID_Usuario}', '${novoStatus}')" class="${classBtn} text-white px-3 py-1 rounded text-xs font-bold shadow transition">
+                                        ${textoBtn}
+                                    </button>
+                                </td>
+                            </tr>
+                        `;
+                    });
+                }
+            });
+        }
+
+        function alternarStatus(idUsuario, novoStatus) {
+            fetch(URL_API, {
+                method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                body: JSON.stringify({ acao: "alternar_status_usuario", id_usuario: idUsuario, novoStatus: novoStatus })
+            }).then(() => setTimeout(carregarTabelaUsuarios, 1000));
+        }
+
+        function dispararAviso() {
+            const titulo = document.getElementById('tituloAviso').value;
+            const mensagem = document.getElementById('mensagemAviso').value;
+            const sessao = JSON.parse(localStorage.getItem("teleamei_sessao"));
+
+            if(!titulo || !mensagem) return alert("Preencha título e mensagem do aviso.");
+
+            fetch(URL_API, {
+                method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                body: JSON.stringify({ acao: "criar_comunicado", titulo: titulo, mensagem: mensagem, autor: sessao.nome })
+            }).then(() => {
+                alert("✅ Comunicado interno enviado com sucesso!");
+                document.getElementById('tituloAviso').value = "";
+                document.getElementById('mensagemAviso').value = "";
+            });
+        }
 
         function alternarCampos() {
             const perfil = document.getElementById('perfil').value;
             document.getElementById('camposMedico').classList.add('hidden');
             document.getElementById('camposUsuario').classList.add('hidden');
-
             if (perfil === 'Medico') document.getElementById('camposMedico').classList.remove('hidden');
             if (perfil === 'Usuario') document.getElementById('camposUsuario').classList.remove('hidden');
         }
 
-        function extrairMultiplos(idCampo) {
-            const select = document.getElementById(idCampo);
-            if (!select) return [];
-            return Array.from(select.selectedOptions).map(opt => opt.value);
+        function extrairMultiplos(id) {
+            const select = document.getElementById(id);
+            return select ? Array.from(select.selectedOptions).map(opt => opt.value) : [];
         }
 
         function montarPayload() {
-            const btn = document.querySelector('button');
-            const textoOriginal = btn.innerText;
-            btn.innerText = "Processando e salvando...";
-            btn.disabled = true;
-
             const payload = {
                 acao: "criar_usuario",
                 nome: document.getElementById('nome').value,
@@ -138,42 +224,19 @@
                 senha: document.getElementById('senha').value,
                 perfil: document.getElementById('perfil').value,
                 crm: document.getElementById('crm') ? document.getElementById('crm').value : "",
-                apresentacao: document.getElementById('apresentacao') ? document.getElementById('apresentacao').value : "",
                 especialidades: extrairMultiplos('especialidades'),
                 unidades: extrairMultiplos('unidades'),
                 departamentos: extrairMultiplos('departamentos')
             };
 
-            const url_api = "https://script.google.com/macros/s/AKfycby-1WKshFbFVNfQliUY65_krsep0MnR3HEi6JlYEUG7mSiPVHIwPwRdIlSVnXbVFVQm/exec";
-
-            const fotoInput = document.getElementById('fotoMedico');
-            if (payload.perfil === 'Medico' && fotoInput && fotoInput.files.length > 0) {
-                const arquivo = fotoInput.files[0];
-                const leitor = new FileReader();
-                leitor.onload = function(e) {
-                    payload.arquivoBase64 = e.target.result.split(',')[1];
-                    payload.arquivoMimeType = arquivo.type;
-                    payload.arquivoNome = arquivo.name;
-                    enviarRequisicao(url_api, payload, btn, textoOriginal);
-                };
-                leitor.readAsDataURL(arquivo);
-            } else {
-                enviarRequisicao(url_api, payload, btn, textoOriginal);
-            }
-        }
-
-        function enviarRequisicao(url, payload, btn, textoOriginal) {
-            fetch(url, {
+            fetch(URL_API, {
                 method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'text/plain;charset=utf-8' },
                 body: JSON.stringify(payload)
-            })
-            .then(() => {
-                alert("✅ Colaborador salvo com sucesso!");
+            }).then(() => {
+                alert("✅ Colaborador cadastrado!");
                 document.getElementById('formUsuario').reset();
-                alternarCampos(); 
-            })
-            .catch(error => { alert("❌ Falha de conexão."); })
-            .finally(() => { btn.innerText = textoOriginal; btn.disabled = false; });
+                carregarTabelaUsuarios();
+            });
         }
 
         window.onload = validarAcesso;

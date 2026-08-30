@@ -8,39 +8,60 @@
 </head>
 <body class="bg-gray-100 min-h-screen p-4 md:p-8">
     
+    <!-- MODAL BLOQUEANTE DE COMUNICADO INTERNO -->
+    <div id="modalComunicado" class="hidden fixed inset-0 bg-slate-900/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div class="bg-white max-w-lg w-full p-6 rounded-2xl shadow-2xl border-t-8 border-indigo-900">
+            <div class="flex items-center space-x-2 text-indigo-900 font-bold mb-2">
+                <span class="text-2xl">📢</span>
+                <h3 class="text-xl" id="comunicadoTitulo">Aviso da Gestão</h3>
+            </div>
+            <p class="text-xs text-gray-500 mb-4">Emitido em <span id="comunicadoData"></span> por <strong id="comunicadoAutor">Admin</strong></p>
+            <div class="bg-slate-50 p-4 rounded-xl text-slate-700 text-sm mb-6 border leading-relaxed" id="comunicadoTexto">
+                ...
+            </div>
+            <button onclick="confirmarLeitura()" class="w-full bg-indigo-900 hover:bg-indigo-800 text-white font-bold py-3.5 rounded-xl shadow-lg transition uppercase text-sm tracking-wide">
+                ✓ Estou ciente da informação
+            </button>
+        </div>
+    </div>
+
     <!-- BARRA DE NAVEGAÇÃO RESPONSIVA -->
     <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4 mb-4 bg-indigo-900 text-white p-4 rounded-lg shadow">
         <div class="font-bold text-lg text-center md:text-left">TeleAmei 💙 | CRM Operacional</div>
+        
         <div class="flex flex-wrap justify-center items-center gap-2 md:gap-3">
-            <span class="text-sm w-full md:w-auto text-center md:text-left mb-2 md:mb-0">Operador(a): <strong id="usuarioLogadoNome">Carregando...</strong></span>
+            <!-- FAROL GAMIFICADO DE PRODUTIVIDADE -->
+            <div id="farolDesempenho" class="flex items-center space-x-2 bg-indigo-950 px-3 py-1 rounded-full border border-indigo-700 text-xs">
+                <span id="farolBolinha" class="w-3 h-3 rounded-full bg-gray-400"></span>
+                <span id="farolTexto" class="font-bold text-gray-200">Avaliando farol...</span>
+            </div>
+
+            <span class="text-sm">Op: <strong id="usuarioLogadoNome">...</strong></span>
             
-            <button onclick="window.location.href='dashboard_operador.html'" class="bg-indigo-600 hover:bg-indigo-700 px-3 py-2 md:py-1 rounded text-sm font-bold shadow transition">Meu Desempenho</button>
-            <button id="btnGestaoUsuarios" onclick="window.location.href='usuarios.html'" class="hidden bg-emerald-600 hover:bg-emerald-700 px-3 py-2 md:py-1 rounded text-sm font-bold shadow transition">👥 Usuários</button>
-            <button id="btnBIAdmin" onclick="window.location.href='dashboard.html'" class="hidden bg-purple-600 hover:bg-purple-700 px-3 py-2 md:py-1 rounded text-sm font-bold shadow transition">📊 Analytics BI</button>
-            <button onclick="fazerLogout()" class="bg-red-500 hover:bg-red-600 px-3 py-2 md:py-1 rounded text-sm font-bold shadow transition">Sair</button>
+            <button onclick="window.location.href='dashboard_operador.html'" class="bg-indigo-600 hover:bg-indigo-700 px-3 py-1 rounded text-sm font-bold shadow transition">Meu Desempenho</button>
+            <button id="btnGestaoUsuarios" onclick="window.location.href='usuarios.html'" class="hidden bg-emerald-600 hover:bg-emerald-700 px-3 py-1 rounded text-sm font-bold shadow transition">👥 Usuários</button>
+            <button id="btnBIAdmin" onclick="window.location.href='dashboard.html'" class="hidden bg-purple-600 hover:bg-purple-700 px-3 py-1 rounded text-sm font-bold shadow transition">📊 Analytics BI</button>
+            <button onclick="fazerLogout()" class="bg-red-500 hover:bg-red-600 px-3 py-1 rounded text-sm font-bold shadow transition">Sair</button>
         </div>
     </div>
 
     <div class="max-w-7xl mx-auto bg-white p-4 md:p-8 rounded-xl shadow-lg border-t-4 border-indigo-900">
-        
         <div class="flex flex-col md:flex-row justify-between items-center gap-4 mb-6">
-            <div class="text-center md:text-left">
+            <div>
                 <h1 class="text-xl md:text-2xl font-bold text-indigo-900">Esteira de Atendimentos Privatizada</h1>
-                <p class="text-xs md:text-sm text-gray-500">Exibindo apenas os atendimentos sob sua responsabilidade ou aguardando assunção.</p>
+                <p class="text-xs md:text-sm text-gray-500">Atendimentos alocados automaticamente para você ou aguardando assunção.</p>
             </div>
-            <button onclick="carregarCRM()" class="w-full md:w-auto bg-indigo-100 text-indigo-900 px-4 py-3 md:py-2 rounded font-bold text-sm md:text-xs hover:bg-indigo-200 transition shadow-sm">🔄 Atualizar Fila</button>
+            <button onclick="carregarCRM()" class="w-full md:w-auto bg-indigo-100 text-indigo-900 px-4 py-2 rounded font-bold text-xs hover:bg-indigo-200 transition shadow-sm">🔄 Atualizar Fila</button>
         </div>
 
-        <!-- FILTROS RESPONSIVOS -->
         <div class="flex flex-wrap border-b border-gray-200 mb-6 gap-2 text-sm font-bold justify-center md:justify-start">
             <button onclick="filtrarStatus('meus')" id="aba_meus" class="px-4 py-2 border-b-2 border-indigo-600 text-indigo-600 w-full md:w-auto text-center">Minhas Demandas</button>
             <button onclick="filtrarStatus('disponiveis')" id="aba_disponiveis" class="px-4 py-2 text-gray-500 hover:text-indigo-600 transition flex items-center justify-center gap-2 w-full md:w-auto">
-                Demandas Livres (Sem Dono) <span id="badge_alertas" class="hidden bg-red-600 text-white px-2 py-0.5 rounded-full text-xs animate-pulse">0</span>
+                Demandas Livres <span id="badge_alertas" class="hidden bg-red-600 text-white px-2 py-0.5 rounded-full text-xs animate-pulse">0</span>
             </button>
             <button onclick="filtrarStatus('todos')" id="aba_todos" class="px-4 py-2 text-gray-500 hover:text-indigo-600 transition w-full md:w-auto text-center">Todos (Visão Geral)</button>
         </div>
 
-        <!-- TABELA COM SCROLL HORIZONTAL MOBILE -->
         <div class="overflow-x-auto w-full">
             <table class="w-full text-left border-collapse text-sm whitespace-nowrap">
                 <thead>
@@ -61,21 +82,18 @@
                 </tbody>
             </table>
         </div>
-
     </div>
 
     <script>
         const URL_API = "https://script.google.com/macros/s/AKfycby-1WKshFbFVNfQliUY65_krsep0MnR3HEi6JlYEUG7mSiPVHIwPwRdIlSVnXbVFVQm/exec";
-        let baseDadosGlobal = []; let usuarioLogado = null;
+        let baseDadosGlobal = []; let usuarioLogado = null; let idComunicadoAtual = null;
 
         function validarAcesso() {
             const sessao = localStorage.getItem("teleamei_sessao");
             if (!sessao) { window.location.href = "login.html"; return; }
             usuarioLogado = JSON.parse(sessao);
             
-            if (usuarioLogado.perfil === "Medico") {
-                window.location.href = "painel_medico.html"; return;
-            }
+            if (usuarioLogado.perfil === "Medico") { window.location.href = "painel_medico.html"; return; }
 
             document.getElementById('usuarioLogadoNome').innerText = usuarioLogado.nome;
 
@@ -86,26 +104,95 @@
             } else {
                 document.getElementById('aba_todos').classList.add('hidden');
             }
+
+            verificarComunicadosPendentes();
             carregarCRM();
         }
 
         function fazerLogout() { localStorage.removeItem("teleamei_sessao"); window.location.href = "login.html"; }
+
+        function verificarComunicadosPendentes() {
+            fetch(`${URL_API}?acao=obter_comunicado_pendente&usuario=${encodeURIComponent(usuarioLogado.nome)}`)
+                .then(res => res.json())
+                .then(res => {
+                    if (res.status === "sucesso" && res.comunicado) {
+                        idComunicadoAtual = res.comunicado.id;
+                        document.getElementById('comunicadoTitulo').innerText = res.comunicado.titulo;
+                        document.getElementById('comunicadoTexto').innerText = res.comunicado.mensagem;
+                        document.getElementById('comunicadoAutor').innerText = res.comunicado.autor;
+                        document.getElementById('comunicadoData').innerText = new Date(res.comunicado.data).toLocaleDateString('pt-BR');
+                        document.getElementById('modalComunicado').classList.remove('hidden');
+                    }
+                });
+        }
+
+        function confirmarLeitura() {
+            if (!idComunicadoAtual) return;
+            fetch(URL_API, {
+                method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                body: JSON.stringify({ acao: "confirmar_leitura_comunicado", id_comunicado: idComunicadoAtual, usuario: usuarioLogado.nome })
+            }).then(() => {
+                document.getElementById('modalComunicado').classList.add('hidden');
+            });
+        }
 
         function carregarCRM() {
             const tbody = document.getElementById('tabelaCRM');
             tbody.innerHTML = '<tr><td colspan="9" class="p-6 text-center text-indigo-600 font-bold">Buscando registros autorizados...</td></tr>';
             fetch(URL_API).then(res => res.json()).then(res => {
                 if (res.status === "sucesso") {
-                    baseDadosGlobal = res.dados.reverse(); filtrarStatus('meus'); contarSLAEstourado();
+                    baseDadosGlobal = res.dados.reverse(); 
+                    filtrarStatus('meus');
+                    contarSLAEstourado();
+                    calcularFarolGamificado();
                 }
             });
+        }
+
+        function calcularFarolGamificado() {
+            const hojeStr = new Date().toLocaleDateString('pt-BR');
+            const contagemOperadores = {};
+
+            baseDadosGlobal.forEach(item => {
+                const dataItem = item.Data_Registro ? new Date(item.Data_Registro).toLocaleDateString('pt-BR') : "";
+                if (dataItem === hojeStr) {
+                    const op = (item.Operador_Responsavel || item["Operador Responsavel"] || "Sistema").trim();
+                    const status = (item.Status_Consulta || "").toLowerCase();
+                    if (op !== "Sistema" && op !== "" && (status === "sim" || status === "concluído")) {
+                        contagemOperadores[op] = (contagemOperadores[op] || 0) + 1;
+                    }
+                }
+            });
+
+            const meuDesempenho = contagemOperadores[usuarioLogado.nome.trim()] || 0;
+            const nomesOutros = Object.keys(contagemOperadores).filter(n => n !== usuarioLogado.nome.trim());
+            
+            let mediaOutros = 0;
+            if (nomesOutros.length > 0) {
+                const soma = nomesOutros.reduce((acc, curr) => acc + contagemOperadores[curr], 0);
+                mediaOutros = soma / nomesOutros.length;
+            }
+
+            const bolinha = document.getElementById('farolBolinha');
+            const texto = document.getElementById('farolTexto');
+
+            if (meuDesempenho > mediaOutros) {
+                bolinha.className = "w-3 h-3 rounded-full bg-green-500 shadow-[0_0_8px_#22c55e]";
+                texto.innerText = `Farol Verde (${meuDesempenho} concluidas hoje)`;
+            } else if (meuDesempenho === mediaOutros) {
+                bolinha.className = "w-3 h-3 rounded-full bg-yellow-500 shadow-[0_0_8px_#eab308]";
+                texto.innerText = `Farol Amarelo (Na média: ${meuDesempenho})`;
+            } else {
+                bolinha.className = "w-3 h-3 rounded-full bg-red-500 shadow-[0_0_8px_#ef4444]";
+                texto.innerText = `Farol Vermelho (Abaixo da média)`;
+            }
         }
 
         function renderizarTabela(lista) {
             const tbody = document.getElementById('tabelaCRM');
             tbody.innerHTML = '';
             if (lista.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="9" class="p-6 text-center text-gray-500 whitespace-normal">Nenhum atendimento sob sua responsabilidade neste filtro.</td></tr>'; return;
+                tbody.innerHTML = '<tr><td colspan="9" class="p-6 text-center text-gray-500 whitespace-normal">Nenhum atendimento neste filtro.</td></tr>'; return;
             }
 
             lista.forEach(item => {
@@ -123,9 +210,9 @@
                 
                 let corStatus = "bg-gray-200 text-gray-800";
                 const statusNormalizado = (item.Status_Consulta || 'pendente').toLowerCase();
-                if (statusNormalizado === 'sim') corStatus = "bg-green-100 text-green-800";
+                if (statusNormalizado === 'sim' || statusNormalizado === 'concluído') corStatus = "bg-green-100 text-green-800";
                 if (statusNormalizado === 'nao') corStatus = "bg-red-100 text-red-800";
-                if (statusNormalizado === 'pendente') corStatus = "bg-yellow-100 text-yellow-800";
+                if (statusNormalizado === 'aguardando agendamento') corStatus = "bg-yellow-100 text-yellow-800";
 
                 let tdLucro = `<td class="p-3 text-right font-bold text-green-700 hidden"></td>`;
                 if (usuarioLogado.perfil === "Admin") {
@@ -133,8 +220,8 @@
                 }
 
                 let botaoAcao = (operadorAtual === "Sistema" || operadorAtual === "" || !operadorAtual)
-                    ? `<button onclick="assumirDemanda('${item.ID}')" class="bg-green-600 text-white px-3 py-2 md:py-1 rounded text-xs font-bold hover:bg-green-700 shadow w-full">Assumir</button>`
-                    : `<button onclick="abrirEdicao('${item.ID}')" class="bg-indigo-600 text-white px-3 py-2 md:py-1 rounded text-xs font-bold hover:bg-indigo-700 shadow w-full">Editar</button>`;
+                    ? `<button onclick="assumirDemanda('${item.ID}')" class="bg-green-600 text-white px-3 py-1 rounded text-xs font-bold hover:bg-green-700 shadow w-full">Assumir</button>`
+                    : `<button onclick="abrirEdicao('${item.ID}')" class="bg-indigo-600 text-white px-3 py-1 rounded text-xs font-bold hover:bg-indigo-700 shadow w-full">Editar</button>`;
 
                 let classeLinha = "border-b hover:bg-indigo-50 transition";
                 let iconeSla = "";
@@ -169,7 +256,6 @@
 
             let lista = baseDadosGlobal;
             const logadoNome = usuarioLogado.nome.trim();
-            const isAdmin = usuarioLogado.perfil === "Admin";
 
             if (tipoFiltro === 'meus') lista = baseDadosGlobal.filter(i => (i.Operador_Responsavel || i["Operador Responsavel"] || "").trim() === logadoNome);
             else if (tipoFiltro === 'disponiveis') lista = baseDadosGlobal.filter(i => { const op = (i.Operador_Responsavel || i["Operador Responsavel"] || "Sistema").trim(); return op === "Sistema" || op === ""; });
@@ -178,8 +264,7 @@
         }
 
         function contarSLAEstourado() {
-            let countSla = 0;
-            const agora = new Date();
+            let countSla = 0; const agora = new Date();
             baseDadosGlobal.forEach(item => {
                 const op = (item.Operador_Responsavel || item["Operador Responsavel"] || "Sistema").trim();
                 if (op === "Sistema" || op === "") {
@@ -193,12 +278,13 @@
         function assumirDemanda(id) {
             if (confirm("Deseja assumir a responsabilidade por este atendimento?")) {
                 const reg = baseDadosGlobal.find(i => (i.ID || i.id) === id);
-                if (reg) { reg.Operador_Responsavel = usuarioLogado.nome.trim(); reg["Operador Responsavel"] = usuarioLogado.nome.trim(); }
+                if (reg) { reg.Operador_Responsavel = usuarioLogado.nome.trim(); }
                 filtrarStatus('meus');
                 fetch(URL_API, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify({ acao: "assumir_demanda", id_registro: id, operadorResponsavel: usuarioLogado.nome.trim() }) })
                 .then(() => setTimeout(() => { carregarCRM(); }, 1200));
             }
         }
+
         function abrirEdicao(id) { window.location.href = `admin.html?id=${id}`; }
         window.onload = validarAcesso;
     </script>
