@@ -8,7 +8,6 @@
 </head>
 <body class="bg-gray-100 min-h-screen p-4 md:p-8">
     
-    <!-- BARRA NAVEGAÇÃO RESPONSIVA -->
     <div class="max-w-6xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4 mb-4 bg-indigo-900 text-white p-4 rounded-lg shadow">
         <div class="font-bold text-lg text-center md:text-left">TeleAmei 💙 | Ficha do Paciente</div>
         <div class="flex flex-wrap justify-center items-center gap-2 md:gap-3">
@@ -28,15 +27,17 @@
                 <button type="button" onclick="dispararWhatsApp('confirmacao')" class="w-full md:w-auto bg-green-500 hover:bg-green-600 text-white px-4 py-3 md:py-2 rounded text-sm font-bold shadow">💬 Confirmar Agenda</button>
                 <button type="button" onclick="dispararWhatsApp('orcamento')" class="w-full md:w-auto bg-teal-600 hover:bg-teal-700 text-white px-4 py-3 md:py-2 rounded text-sm font-bold shadow">📄 Enviar Orçamento</button>
             </div>
+            <div id="botoesMedico" class="hidden flex space-x-2">
+                <button type="button" onclick="dispararWhatsApp('documentos')" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded text-sm font-bold shadow transition flex items-center">🩺 Enviar Documentos</button>
+            </div>
         </div>
 
         <div id="divAnexoExistente" class="hidden mb-6 p-4 bg-slate-100 border border-slate-300 rounded-lg shadow-inner">
             <span class="block text-sm text-slate-800 font-bold mb-3">📄 Histórico de Documentos Salvos:</span>
-            <div id="listaAnexosExistentes" class="flex flex-wrap gap-2"></div>
+            <div id="listaAnexosExistentes" class="grid grid-cols-1 md:grid-cols-2 gap-3"></div>
         </div>
         
         <form class="space-y-6" id="formAdmin">
-            <!-- GRIDS RESPONSIVOS: grid-cols-1 em mobile, md:grid-cols-2, lg:grid-cols-4 -->
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 bg-gray-50 p-4 rounded-lg border border-gray-200">
                 <div class="md:col-span-2"><label class="block text-sm font-medium text-gray-700">Paciente</label><input type="text" id="nomePaciente" class="mt-1 block w-full px-4 py-3 md:py-2 border border-gray-300 rounded-md bg-white"></div>
                 <div><label class="block text-sm font-medium text-gray-700">Telefone / WhatsApp</label><input type="text" id="telefonePaciente" class="mt-1 block w-full px-4 py-3 md:py-2 border border-green-300 rounded-md bg-white"></div>
@@ -60,7 +61,6 @@
                 </div>
             </div>
 
-            <!-- BLOCO OPERAÇÃO -->
             <div id="blocoPreConsulta" class="hidden grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div><label class="block text-sm font-medium text-gray-700">Valor da Consulta (R$)</label><input type="number" id="valorConsulta" class="mt-1 block w-full px-4 py-3 md:py-2 border border-gray-300 rounded-md"></div>
                 <div class="bg-blue-50 p-3 rounded-lg border border-blue-200">
@@ -76,7 +76,6 @@
                 <div><label class="block text-sm font-medium text-gray-700">Anexar Doc (Recepção)</label><input type="file" id="anexoRecepcao" class="mt-1 block w-full bg-white p-2 border border-gray-300 rounded text-sm md:text-xs"></div>
             </div>
 
-            <!-- BLOCO ORÇAMENTO -->
             <div id="blocoOrcamento" class="hidden bg-yellow-50 p-4 md:p-6 rounded-lg border-2 border-yellow-400 mt-6 shadow-sm">
                 <h3 class="text-lg font-bold text-yellow-900 mb-4">📄 Orçamento e Agendamento de Exames</h3>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
@@ -84,12 +83,11 @@
                     <div><label class="block text-sm font-bold text-gray-800">CUSTO (R$)</label><input type="number" id="orcamentoCusto" oninput="verificarAlertaOrcamento()" class="mt-1 block w-full px-4 py-3 border border-yellow-400 bg-white rounded-md text-lg font-bold"></div>
                 </div>
                 <div id="campoDataExame" class="hidden mt-6 bg-white p-4 border border-green-300 rounded-lg">
-                    <label class="block text-sm font-bold text-green-900">Data Agendada</label>
+                    <label class="block text-sm font-bold text-green-900">Data Agendada para os Exames</label>
                     <input type="date" id="dataExame" class="mt-2 block w-full md:w-1/3 px-4 py-3 md:py-2 border border-green-400 rounded-md shadow-sm">
                 </div>
             </div>
 
-            <!-- BLOCO MÉDICO -->
             <div id="blocoMedico" class="hidden border-t-2 border-blue-200 pt-6">
                 <div class="bg-blue-50 p-4 md:p-6 rounded-xl border border-blue-300">
                     <h3 class="text-xl font-bold text-blue-900 mb-4">🩺 Prontuário Médico</h3>
@@ -121,7 +119,40 @@
 
     <script>
         const URL_API = "https://script.google.com/macros/s/AKfycby-1WKshFbFVNfQliUY65_krsep0MnR3HEi6JlYEUG7mSiPVHIwPwRdIlSVnXbVFVQm/exec";
-        let usuarioLogado = null; let idEdicao = null; let linkAnexoExistente = ""; let alertaDisparado = false;
+        let usuarioLogado = null; let idEdicao = null; let anexosGlobais = []; let alertaDisparado = false;
+
+        const OmnichannelService = {
+            executarEnvio: function(telefone, mensagem) {
+                const numeroLimpo = telefone.replace(/\D/g, '');
+                if (numeroLimpo.length < 10) return alert("Número inválido.");
+                window.open(`https://wa.me/55${numeroLimpo}?text=${encodeURIComponent(mensagem)}`, '_blank');
+            },
+            templateConfirmacao: (pac, med, und) => `Olá ${pac}, tudo bem? 💙\nPassando para confirmar sua consulta com o Dr(a). ${med} na unidade ${und}.\n\nPor favor, responda SIM para confirmar.`,
+            templateOrcamento: (pac, med, valor) => `Olá ${pac}!\nSeu orçamento de exames realizados na clínica com o médico ${med} está pronto. Valor total: R$ ${valor}.\n\nComo prefere realizar o pagamento?`,
+            templateDocumentos: (pac, med, linksListados) => `Olá ${pac}, aqui é da equipe TeleAmei! 💙\n\nConforme sua consulta com o(a) Dr(a). ${med}, seguem os links seguros para acessar seus documentos médicos:\n${linksListados}\n\nQualquer dúvida, estamos à disposição!`
+        };
+
+        function dispararWhatsApp(tipo) {
+            const tel = document.getElementById('telefonePaciente').value;
+            const pac = document.getElementById('nomePaciente').value || "Paciente";
+            const med = document.getElementById('medicoResponsavel').value || "médico";
+            
+            if (!tel) return alert("Preencha o Telefone / WhatsApp.");
+            let msg = "";
+
+            if (tipo === 'confirmacao') {
+                msg = OmnichannelService.templateConfirmacao(pac, med, document.getElementById('unidadeAtendimento').value || "clínica");
+            } else if (tipo === 'orcamento') {
+                msg = OmnichannelService.templateOrcamento(pac, med, document.getElementById('orcamentoTotal').value || "0.00");
+            } else if (tipo === 'documentos') {
+                const ativos = anexosGlobais.filter(a => a.status === 'ativo');
+                if (ativos.length === 0) return alert("Nenhum documento ativo salvo na nuvem.");
+                let linksFormatados = "";
+                ativos.forEach(tag => { linksFormatados += `\n📄 ${tag.nome}:\n${tag.url}\n`; });
+                msg = OmnichannelService.templateDocumentos(pac, med, linksFormatados);
+            }
+            OmnichannelService.executarEnvio(tel, msg);
+        }
 
         function validarAcesso() {
             const sessao = localStorage.getItem("teleamei_sessao");
@@ -135,9 +166,13 @@
             } else if (usuarioLogado.perfil !== "Medico") {
                 document.getElementById('btnDesempenhoNav').classList.remove('hidden');
             }
-            if (usuarioLogado.perfil === "Medico") document.getElementById('blocoMedico').classList.remove('hidden');
-            else { document.getElementById('botoesOperacao').classList.remove('hidden'); document.getElementById('blocoPreConsulta').classList.remove('hidden'); }
-            
+            if (usuarioLogado.perfil === "Medico") {
+                document.getElementById('blocoMedico').classList.remove('hidden');
+                document.getElementById('botoesMedico').classList.remove('hidden');
+            } else { 
+                document.getElementById('botoesOperacao').classList.remove('hidden'); 
+                document.getElementById('blocoPreConsulta').classList.remove('hidden'); 
+            }
             carregarMedicos(); verificarModoEdicao();
         }
 
@@ -180,16 +215,59 @@
             document.getElementById('statusOperacao').value = statusAtual;
             if (statusAtual === "sim" || statusAtual === "nao") document.getElementById('statusMedico').value = statusAtual;
 
-            linkAnexoExistente = dados.Link_Anexo || "";
-            if (linkAnexoExistente && linkAnexoExistente !== "Sem anexo") {
-                document.getElementById('divAnexoExistente').classList.remove('hidden');
-                let links = linkAnexoExistente.split(" | ");
-                links.forEach((url, i) => {
-                    document.getElementById('listaAnexosExistentes').innerHTML += `<a href="${url.trim()}" target="_blank" class="bg-indigo-100 text-indigo-800 px-3 py-2 rounded text-xs font-bold shadow-sm hover:bg-indigo-200 break-all w-full md:w-auto">📄 Documento ${i+1}</a>`;
-                });
+            const anexoBruto = dados.Link_Anexo || "";
+            anexosGlobais = [];
+            if (anexoBruto && anexoBruto !== "Sem anexo") {
+                try { anexosGlobais = JSON.parse(anexoBruto); } 
+                catch(e) { 
+                    anexoBruto.split(" | ").forEach((url, i) => {
+                        if(url.trim() !== "") anexosGlobais.push({ url: url.trim(), nome: `Doc Legado ${i+1}`, status: 'ativo' });
+                    });
+                }
             }
+            renderizarAnexos();
+
             setTimeout(() => { document.getElementById('medicoResponsavel').value = dados.Medico_Responsavel || ""; }, 500);
             verificarRegras();
+        }
+
+        function renderizarAnexos() {
+            const divPrincipal = document.getElementById('divAnexoExistente');
+            const lista = document.getElementById('listaAnexosExistentes');
+            lista.innerHTML = "";
+
+            if (anexosGlobais.length === 0) { divPrincipal.classList.add('hidden'); return; }
+            divPrincipal.classList.remove('hidden');
+
+            anexosGlobais.forEach((anexo, index) => {
+                let corFundo = anexo.status === 'ativo' ? 'bg-white border-indigo-200 shadow-sm' : 'bg-gray-100 border-gray-300 opacity-70';
+                let nomeRiscado = anexo.status === 'ativo' ? '' : 'line-through text-gray-500';
+                let tagStatus = anexo.status === 'ativo' ? '' : `<span class="text-[10px] uppercase font-bold text-red-500 ml-2">(${anexo.status})</span>`;
+
+                let botoes = '';
+                if (anexo.status === 'ativo') {
+                    if (usuarioLogado.perfil === 'Admin') {
+                        botoes = `<button type="button" onclick="alterarStatusAnexo(${index}, 'excluido')" class="text-xs text-red-600 font-bold hover:underline bg-red-50 px-2 py-1 rounded border border-red-200">❌ Excluir</button>`;
+                    } else {
+                        botoes = `<button type="button" onclick="alterarStatusAnexo(${index}, 'substituido')" class="text-xs text-orange-600 font-bold hover:underline bg-orange-50 px-2 py-1 rounded border border-orange-200">🔄 Substituir</button>`;
+                    }
+                }
+
+                lista.innerHTML += `
+                    <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between p-3 rounded-lg border w-full ${corFundo}">
+                        <a href="${anexo.url}" target="_blank" class="text-indigo-800 font-bold text-xs truncate hover:underline ${nomeRiscado}">📄 ${anexo.nome} ${tagStatus}</a>
+                        <div class="mt-2 sm:mt-0 flex gap-3">${botoes}</div>
+                    </div>
+                `;
+            });
+        }
+
+        function alterarStatusAnexo(index, novoStatus) {
+            if(novoStatus === 'excluido' && confirm("Deseja realmente EXCLUIR este documento? Ele não será mais enviado ao paciente.")) {
+                anexosGlobais[index].status = 'excluido'; renderizarAnexos();
+            } else if (novoStatus === 'substituido' && confirm("Marcar para SUBSTITUIÇÃO?\nO arquivo atual será inativado e mantido no histórico. Você deverá anexar o novo arquivo abaixo.")) {
+                anexosGlobais[index].status = 'substituido'; renderizarAnexos();
+            }
         }
 
         function verificarRegras() {
@@ -232,7 +310,9 @@
                 valorConsulta: parseFloat(document.getElementById('valorConsulta').value) || 0,
                 totalExames: parseFloat(document.getElementById('orcamentoTotal').value) || 0,
                 custoExames: parseFloat(document.getElementById('orcamentoCusto').value) || 0,
-                statusConsulta: statusFinal, linkAnexoExistente: linkAnexoExistente, operadorResponsavel: usuarioLogado.nome
+                statusConsulta: statusFinal,
+                anexosAtuais: anexosGlobais, // Envia o histórico processado
+                operadorResponsavel: usuarioLogado.nome
             };
             if (idEdicao) { payload.acao = "atualizar_registro"; payload.id_registro = idEdicao; }
 
