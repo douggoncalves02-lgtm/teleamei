@@ -28,7 +28,7 @@
                 <button type="button" onclick="dispararWhatsApp('orcamento')" class="w-full md:w-auto bg-teal-600 hover:bg-teal-700 text-white px-4 py-3 md:py-2 rounded text-sm font-bold shadow">📄 Enviar Orçamento</button>
             </div>
             <div id="botoesMedico" class="hidden flex space-x-2">
-                <button type="button" onclick="dispararWhatsApp('documentos')" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded text-sm font-bold shadow transition flex items-center">🩺 Enviar Documentos</button>
+                <button type="button" onclick="dispararWhatsApp('documentos')" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-3 md:py-2 rounded text-sm font-bold shadow transition flex items-center w-full md:w-auto justify-center">🩺 Enviar Documentos</button>
             </div>
         </div>
 
@@ -129,7 +129,12 @@
             },
             templateConfirmacao: (pac, med, und) => `Olá ${pac}, tudo bem? 💙\nPassando para confirmar sua consulta com o Dr(a). ${med} na unidade ${und}.\n\nPor favor, responda SIM para confirmar.`,
             templateOrcamento: (pac, med, valor) => `Olá ${pac}!\nSeu orçamento de exames realizados na clínica com o médico ${med} está pronto. Valor total: R$ ${valor}.\n\nComo prefere realizar o pagamento?`,
-            templateDocumentos: (pac, med, linksListados) => `Olá ${pac}, aqui é da equipe TeleAmei! 💙\n\nConforme sua consulta com o(a) Dr(a). ${med}, seguem os links seguros para acessar seus documentos médicos:\n${linksListados}\n\nQualquer dúvida, estamos à disposição!`
+            templateDocumentos: (pac, med, linksListados, temExame) => {
+                let msg = `Olá ${pac}, aqui é da equipe TeleAmei! 💙\n\nConforme sua consulta com o(a) Dr(a). ${med}, seguem os links seguros para acessar seus documentos médicos:\n${linksListados}`;
+                if (temExame) msg += `\n\n⚠️ Em breve, nosso time entrará em contato com o orçamento completo para realização e instruções para os exames solicitados.`;
+                msg += `\n\nQualquer dúvida, estamos à disposição!`;
+                return msg;
+            }
         };
 
         function dispararWhatsApp(tipo) {
@@ -146,10 +151,17 @@
                 msg = OmnichannelService.templateOrcamento(pac, med, document.getElementById('orcamentoTotal').value || "0.00");
             } else if (tipo === 'documentos') {
                 const ativos = anexosGlobais.filter(a => a.status === 'ativo');
-                if (ativos.length === 0) return alert("Nenhum documento ativo salvo na nuvem.");
+                if (ativos.length === 0) return alert("Nenhum documento ativo salvo na nuvem. Salve o prontuário primeiro.");
+                
                 let linksFormatados = "";
-                ativos.forEach(tag => { linksFormatados += `\n📄 ${tag.nome}:\n${tag.url}\n`; });
-                msg = OmnichannelService.templateDocumentos(pac, med, linksFormatados);
+                let temExame = false;
+                
+                ativos.forEach(tag => { 
+                    linksFormatados += `\n📄 ${tag.nome}:\n${tag.url}\n`; 
+                    if(tag.nome.includes('Sol. Exames')) temExame = true;
+                });
+                
+                msg = OmnichannelService.templateDocumentos(pac, med, linksFormatados, temExame);
             }
             OmnichannelService.executarEnvio(tel, msg);
         }
@@ -172,6 +184,7 @@
             } else { 
                 document.getElementById('botoesOperacao').classList.remove('hidden'); 
                 document.getElementById('blocoPreConsulta').classList.remove('hidden'); 
+                document.getElementById('botoesMedico').classList.remove('hidden'); // Liberado também para operação 
             }
             carregarMedicos(); verificarModoEdicao();
         }
@@ -311,7 +324,7 @@
                 totalExames: parseFloat(document.getElementById('orcamentoTotal').value) || 0,
                 custoExames: parseFloat(document.getElementById('orcamentoCusto').value) || 0,
                 statusConsulta: statusFinal,
-                anexosAtuais: anexosGlobais, // Envia o histórico processado
+                anexosAtuais: anexosGlobais,
                 operadorResponsavel: usuarioLogado.nome
             };
             if (idEdicao) { payload.acao = "atualizar_registro"; payload.id_registro = idEdicao; }
