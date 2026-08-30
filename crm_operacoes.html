@@ -14,10 +14,11 @@
         <div class="flex items-center space-x-3">
             <span class="text-sm">Operador(a): <strong id="usuarioLogadoNome">Carregando...</strong></span>
             
-            <!-- Botão Gamificação Individual VAZ -->
+            <!-- Botão Gamificação Individual -->
             <button onclick="window.location.href='dashboard_operador.html'" class="bg-indigo-600 hover:bg-indigo-700 px-3 py-1 rounded text-sm font-bold shadow transition">Meu Desempenho</button>
             
-            <!-- Botão BI Executivo (Visível via JS para Admin) -->
+            <!-- Botões Exclusivos Admin (Visíveis via JS) -->
+            <button id="btnGestaoUsuarios" onclick="window.location.href='usuarios.html'" class="hidden bg-emerald-600 hover:bg-emerald-700 px-3 py-1 rounded text-sm font-bold shadow transition">👥 Usuários</button>
             <button id="btnBIAdmin" onclick="window.location.href='dashboard.html'" class="hidden bg-purple-600 hover:bg-purple-700 px-3 py-1 rounded text-sm font-bold shadow transition">📊 Analytics BI</button>
 
             <button onclick="fazerLogout()" class="bg-red-500 hover:bg-red-600 px-3 py-1 rounded text-sm font-bold shadow transition">Sair</button>
@@ -36,7 +37,9 @@
 
         <div class="flex border-b border-gray-200 mb-6 overflow-x-auto space-x-2 text-sm font-bold">
             <button onclick="filtrarStatus('meus')" id="aba_meus" class="px-4 py-2 border-b-2 border-indigo-600 text-indigo-600">Minhas Demandas</button>
-            <button onclick="filtrarStatus('disponiveis')" id="aba_disponiveis" class="px-4 py-2 text-gray-500 hover:text-indigo-600 transition">Demandas Livres (Sem Dono)</button>
+            <button onclick="filtrarStatus('disponiveis')" id="aba_disponiveis" class="px-4 py-2 text-gray-500 hover:text-indigo-600 transition flex items-center gap-2">
+                Demandas Livres (Sem Dono) <span id="badge_alertas" class="hidden bg-red-600 text-white px-2 py-0.5 rounded-full text-xs animate-pulse">0</span>
+            </button>
             <button onclick="filtrarStatus('todos')" id="aba_todos" class="px-4 py-2 text-gray-500 hover:text-indigo-600 transition">Todos (Visão Geral)</button>
         </div>
 
@@ -44,7 +47,7 @@
             <table class="w-full text-left border-collapse text-sm">
                 <thead>
                     <tr class="bg-gray-100 border-b-2 border-gray-200 text-gray-700 uppercase text-xs">
-                        <th class="p-3">Data</th>
+                        <th class="p-3">Data e Hora</th>
                         <th class="p-3">Paciente</th>
                         <th class="p-3">Especialidade / Unidade</th>
                         <th class="p-3">Operador / Médico</th>
@@ -84,6 +87,7 @@
             if (usuarioLogado.perfil === "Admin") {
                 document.getElementById('colunaLucroTopo').classList.remove('hidden');
                 document.getElementById('btnBIAdmin').classList.remove('hidden');
+                document.getElementById('btnGestaoUsuarios').classList.remove('hidden');
             } else {
                 document.getElementById('aba_todos').classList.add('hidden');
             }
@@ -103,6 +107,7 @@
                     if (res.status === "sucesso") {
                         baseDadosGlobal = res.dados.reverse(); 
                         filtrarStatus('meus');
+                        contarSLAEstourado();
                     }
                 });
         }
@@ -117,7 +122,17 @@
             }
 
             lista.forEach(item => {
-                const data = item.Data_Registro ? new Date(item.Data_Registro).toLocaleDateString('pt-BR') : 'N/I';
+                let dataStr = 'N/I';
+                let dataObj = null;
+
+                if (item.Data_Registro) {
+                    const parsedDate = new Date(item.Data_Registro);
+                    if (!isNaN(parsedDate)) {
+                        dataObj = parsedDate;
+                        dataStr = parsedDate.toLocaleDateString('pt-BR') + ' ' + parsedDate.toLocaleTimeString('pt-BR', {hour: '2-digit', minute:'2-digit'});
+                    }
+                }
+
                 const operadorAtual = item.Operador_Responsavel || item["Operador Responsavel"] || "Sistema";
                 const especialidadeNome = item.Especialidade || item.especialidade || '-';
                 
@@ -136,9 +151,21 @@
                     ? `<button onclick="assumirDemanda('${item.ID}')" class="bg-green-600 text-white px-3 py-1 rounded text-xs font-bold hover:bg-green-700 shadow">Assumir</button>`
                     : `<button onclick="abrirEdicao('${item.ID}')" class="bg-indigo-600 text-white px-3 py-1 rounded text-xs font-bold hover:bg-indigo-700 shadow">Editar</button>`;
 
+                let classeLinha = "border-b hover:bg-indigo-50 transition";
+                let iconeSla = "";
+                
+                if (dataObj && (operadorAtual === "Sistema" || operadorAtual === "" || !operadorAtual)) {
+                    const agora = new Date();
+                    const diffHoras = (agora - dataObj) / (1000 * 60 * 60);
+                    if (diffHoras >= 2) {
+                        classeLinha = "border-b-2 border-red-400 bg-red-50 hover:bg-red-100 transition";
+                        iconeSla = `<span title="SLA Estourado: Aguardando há mais de 2 horas!" class="ml-2 text-xl cursor-help">⚠️</span>`;
+                    }
+                }
+
                 tbody.innerHTML += `
-                    <tr class="border-b hover:bg-indigo-50 transition">
-                        <td class="p-3 font-mono text-gray-600">${data}</td>
+                    <tr class="${classeLinha}">
+                        <td class="p-3 font-mono text-gray-600 text-xs">${dataStr} ${iconeSla}</td>
                         <td class="p-3 font-bold text-gray-800">${item.Paciente || 'Não informado'}</td>
                         <td class="p-3">
                             <span class="font-semibold">${especialidadeNome}</span><br>
@@ -161,8 +188,8 @@
         }
 
         function filtrarStatus(tipoFiltro) {
-            document.querySelectorAll('[id^="aba_"]').forEach(b => { b.className = "px-4 py-2 text-gray-500 hover:text-indigo-600 transition"; });
-            document.getElementById('aba_' + tipoFiltro).className = "px-4 py-2 border-b-2 border-indigo-600 text-indigo-600 font-bold";
+            document.querySelectorAll('[id^="aba_"]').forEach(b => { b.className = "px-4 py-2 text-gray-500 hover:text-indigo-600 transition flex items-center gap-2"; });
+            document.getElementById('aba_' + tipoFiltro).className = "px-4 py-2 border-b-2 border-indigo-600 text-indigo-600 font-bold flex items-center gap-2";
 
             let listaFiltrada = [];
             if (usuarioLogado.perfil === "Admin") {
@@ -180,6 +207,30 @@
                 });
             }
             renderizarTabela(listaFiltrada);
+        }
+
+        function contarSLAEstourado() {
+            let countSla = 0;
+            const agora = new Date();
+            baseDadosGlobal.forEach(item => {
+                const op = (item.Operador_Responsavel || item["Operador Responsavel"] || "Sistema").trim();
+                if (op === "Sistema" || op === "") {
+                    if (item.Data_Registro) {
+                        const parsedDate = new Date(item.Data_Registro);
+                        if (!isNaN(parsedDate) && (agora - parsedDate) / (1000 * 60 * 60) >= 2) {
+                            countSla++;
+                        }
+                    }
+                }
+            });
+
+            const badge = document.getElementById('badge_alertas');
+            if (countSla > 0) {
+                badge.innerText = countSla;
+                badge.classList.remove('hidden');
+            } else {
+                badge.classList.add('hidden');
+            }
         }
 
         function assumirDemanda(id) {

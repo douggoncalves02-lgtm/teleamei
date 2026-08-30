@@ -3,27 +3,40 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cadastro de Usuários - TeleAmei</title>
+    <title>Gestão de Usuários - TeleAmei</title>
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="bg-gray-100 p-8 min-h-screen">
-    <div class="max-w-3xl mx-auto bg-white p-8 rounded-xl shadow-lg border-t-4 border-indigo-800 mt-8">
-        <h1 class="text-2xl font-bold text-indigo-800 mb-6">Novo Usuário / Colaborador</h1>
+<body class="bg-gray-100 min-h-screen p-8">
+
+    <!-- BARRA DE NAVEGAÇÃO -->
+    <div class="max-w-4xl mx-auto flex justify-between items-center mb-6 bg-indigo-900 text-white p-4 rounded-lg shadow">
+        <div class="font-bold text-lg">TeleAmei 💙 | Gestão de Usuários</div>
+        <div class="flex items-center space-x-3">
+            <span class="text-sm">Admin: <strong id="usuarioLogadoNome">Carregando...</strong></span>
+            <button onclick="window.location.href='dashboard.html'" class="bg-purple-600 hover:bg-purple-700 px-3 py-1 rounded text-sm font-bold shadow transition">📊 BI</button>
+            <button onclick="window.location.href='crm_operacoes.html'" class="bg-indigo-500 hover:bg-indigo-600 px-3 py-1 rounded text-sm font-bold shadow transition">Voltar</button>
+            <button onclick="fazerLogout()" class="bg-red-500 hover:bg-red-600 px-3 py-1 rounded text-sm font-bold shadow transition">Sair</button>
+        </div>
+    </div>
+    
+    <div class="max-w-4xl mx-auto bg-white p-8 rounded-xl shadow-lg border-t-4 border-indigo-800">
+        <h1 class="text-2xl font-bold text-indigo-800 mb-6">Cadastrar Novo Colaborador</h1>
 
         <form id="formUsuario" class="space-y-6">
             <!-- Dados Básicos -->
             <div class="grid grid-cols-2 gap-4 bg-gray-50 p-4 rounded-lg border border-gray-200">
                 <div class="col-span-2"><label class="block text-sm font-medium text-gray-700">Nome Completo</label><input type="text" id="nome" class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md"></div>
-                <div><label class="block text-sm font-medium text-gray-700">E-mail</label><input type="email" id="email" class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md"></div>
+                <div><label class="block text-sm font-medium text-gray-700">Telefone / WhatsApp</label><input type="tel" id="telefone" placeholder="(11) 99999-9999" class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md"></div>
+                <div><label class="block text-sm font-medium text-gray-700">E-mail (Login)</label><input type="email" id="email" class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md"></div>
                 <div><label class="block text-sm font-medium text-gray-700">Senha Provisória</label><input type="password" id="senha" class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md"></div>
                 
-                <div class="col-span-2 mt-4">
+                <div class="mt-4 col-span-2 md:col-span-1">
                     <label class="block text-sm font-medium text-indigo-900 mb-2">Perfil de Acesso</label>
                     <select id="perfil" onchange="alternarCampos()" class="w-full border-2 border-indigo-300 p-2 rounded font-bold bg-white">
-                        <option value="">Selecione...</option>
+                        <option value="">Selecione o Nível...</option>
                         <option value="Admin">Administrativo (Acesso Total)</option>
                         <option value="Medico">Médico (Corpo Clínico)</option>
-                        <option value="Usuario">Usuário (Recepção/Gestão)</option>
+                        <option value="Usuario">Operação (Recepção/Gestão)</option>
                     </select>
                 </div>
             </div>
@@ -37,10 +50,15 @@
                         <select id="especialidades" multiple class="mt-1 block w-full px-4 py-2 border border-blue-300 rounded-md h-24 bg-white">
                             <option value="Cardiologia">Cardiologia</option>
                             <option value="Pediatria">Pediatria</option>
-                            <option value="Clínica Geral">Clínica Geral</option>
+                            <option value="Clínico Geral">Clínico Geral</option>
                             <option value="Dermatologia">Dermatologia</option>
+                            <option value="Psicologia">Psicologia</option>
                         </select>
                     </div>
+                </div>
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-blue-900">Foto de Perfil (Opcional)</label>
+                    <input type="file" id="fotoMedico" accept="image/*" class="mt-1 block w-full bg-white p-2 border border-blue-200 rounded cursor-pointer">
                 </div>
                 <div><label class="block text-sm font-medium text-blue-900">Apresentação Profissional</label><textarea id="apresentacao" class="mt-1 block w-full px-4 py-2 border border-blue-300 rounded-md h-20"></textarea></div>
             </div>
@@ -68,13 +86,29 @@
                 </div>
             </div>
 
-            <button type="button" onclick="montarPayload()" class="w-full bg-indigo-800 text-white py-3 rounded-md font-bold hover:bg-indigo-900 transition duration-300 shadow-md">
+            <button type="button" onclick="montarPayload()" class="w-full bg-indigo-800 text-white py-4 rounded-xl font-bold hover:bg-indigo-900 transition duration-300 shadow-md uppercase">
                 Cadastrar Colaborador
             </button>
         </form>
     </div>
 
     <script>
+        // Trava de Segurança Admin
+        function validarAcesso() {
+            const sessao = localStorage.getItem("teleamei_sessao");
+            if (!sessao) { window.location.href = "login.html"; return; }
+            const usuarioLogado = JSON.parse(sessao);
+            
+            if (usuarioLogado.perfil !== "Admin") {
+                alert("Acesso restrito. Apenas Administradores podem cadastrar novos usuários.");
+                window.location.href = "crm_operacoes.html";
+                return;
+            }
+            document.getElementById('usuarioLogadoNome').innerText = usuarioLogado.nome;
+        }
+
+        function fazerLogout() { localStorage.removeItem("teleamei_sessao"); window.location.href = "login.html"; }
+
         function alternarCampos() {
             const perfil = document.getElementById('perfil').value;
             document.getElementById('camposMedico').classList.add('hidden');
@@ -99,6 +133,7 @@
             const payload = {
                 acao: "criar_usuario",
                 nome: document.getElementById('nome').value,
+                telefone: document.getElementById('telefone').value,
                 email: document.getElementById('email').value,
                 senha: document.getElementById('senha').value,
                 perfil: document.getElementById('perfil').value,
@@ -111,28 +146,37 @@
 
             const url_api = "https://script.google.com/macros/s/AKfycby-1WKshFbFVNfQliUY65_krsep0MnR3HEi6JlYEUG7mSiPVHIwPwRdIlSVnXbVFVQm/exec";
 
-            fetch(url_api, {
-                method: 'POST',
-                mode: 'no-cors',
-                headers: {
-                    'Content-Type': 'text/plain;charset=utf-8',
-                },
+            const fotoInput = document.getElementById('fotoMedico');
+            if (payload.perfil === 'Medico' && fotoInput && fotoInput.files.length > 0) {
+                const arquivo = fotoInput.files[0];
+                const leitor = new FileReader();
+                leitor.onload = function(e) {
+                    payload.arquivoBase64 = e.target.result.split(',')[1];
+                    payload.arquivoMimeType = arquivo.type;
+                    payload.arquivoNome = arquivo.name;
+                    enviarRequisicao(url_api, payload, btn, textoOriginal);
+                };
+                leitor.readAsDataURL(arquivo);
+            } else {
+                enviarRequisicao(url_api, payload, btn, textoOriginal);
+            }
+        }
+
+        function enviarRequisicao(url, payload, btn, textoOriginal) {
+            fetch(url, {
+                method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'text/plain;charset=utf-8' },
                 body: JSON.stringify(payload)
             })
             .then(() => {
-                alert("✅ Usuário salvo com sucesso!");
+                alert("✅ Colaborador salvo com sucesso!");
                 document.getElementById('formUsuario').reset();
                 alternarCampos(); 
             })
-            .catch(error => {
-                console.error("Erro na API:", error);
-                alert("❌ Falha de conexão.");
-            })
-            .finally(() => {
-                btn.innerText = textoOriginal;
-                btn.disabled = false;
-            });
+            .catch(error => { alert("❌ Falha de conexão."); })
+            .finally(() => { btn.innerText = textoOriginal; btn.disabled = false; });
         }
+
+        window.onload = validarAcesso;
     </script>
 </body>
 </html>

@@ -7,9 +7,10 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
-<body class="bg-gray-100 min-h-screen p-8">
+<body class="bg-slate-50 min-h-screen p-8">
     
-    <div class="max-w-7xl mx-auto flex justify-between items-center mb-6 bg-purple-900 text-white p-4 rounded-lg shadow">
+    <!-- BARRA DE NAVEGAÇÃO -->
+    <div class="max-w-7xl mx-auto flex justify-between items-center mb-6 bg-purple-900 text-white p-4 rounded-lg shadow-lg">
         <div class="font-bold text-lg">TeleAmei 📊 | BI Executivo Global</div>
         <div class="flex items-center space-x-4">
             <span class="text-sm">Admin: <strong id="usuarioLogadoNome">Carregando...</strong></span>
@@ -18,25 +19,45 @@
         </div>
     </div>
 
-    <div class="max-w-7xl mx-auto space-y-6">
-        <div class="grid grid-cols-1 md:grid-cols-4 gap-6" id="painelResumo">
-            <div class="col-span-full text-center py-6 text-purple-600 font-bold">Processando dados financeiros...</div>
+    <!-- PAINEL DE FILTROS AVANÇADOS -->
+    <div class="max-w-7xl mx-auto bg-white p-6 rounded-xl shadow-md border-t-4 border-indigo-500 mb-6">
+        <h2 class="text-sm font-bold text-indigo-900 uppercase mb-4">Filtros de Análise (Cruzamento de Dados)</h2>
+        <div class="grid grid-cols-1 md:grid-cols-6 gap-4 items-end">
+            <div><label class="block text-xs font-bold text-gray-600">Data Inicial</label><input type="date" id="dataInicio" class="mt-1 w-full px-3 py-2 border rounded-md text-sm"></div>
+            <div><label class="block text-xs font-bold text-gray-600">Data Final</label><input type="date" id="dataFim" class="mt-1 w-full px-3 py-2 border rounded-md text-sm"></div>
+            <div><label class="block text-xs font-bold text-gray-600">Unidade</label><select id="filtroUnidade" class="mt-1 w-full px-3 py-2 border rounded-md text-sm"><option value="">Todas</option></select></div>
+            <div><label class="block text-xs font-bold text-gray-600">Colaborador (Op)</label><select id="filtroOperador" class="mt-1 w-full px-3 py-2 border rounded-md text-sm"><option value="">Todos</option></select></div>
+            <div><label class="block text-xs font-bold text-gray-600">Médico</label><select id="filtroMedico" class="mt-1 w-full px-3 py-2 border rounded-md text-sm"><option value="">Todos</option></select></div>
+            <div><label class="block text-xs font-bold text-gray-600">Especialidade</label><select id="filtroEspecialidade" class="mt-1 w-full px-3 py-2 border rounded-md text-sm"><option value="">Todas</option></select></div>
         </div>
+        <div class="mt-4 flex justify-end space-x-2">
+            <button onclick="limparFiltros()" class="bg-gray-200 text-gray-700 px-4 py-2 rounded text-sm font-bold hover:bg-gray-300 transition">Limpar</button>
+            <button onclick="aplicarFiltros()" class="bg-indigo-600 text-white px-6 py-2 rounded text-sm font-bold shadow hover:bg-indigo-700 transition">Aplicar Filtros</button>
+        </div>
+    </div>
 
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div class="bg-white p-6 rounded-xl shadow-md border border-gray-200">
-                <h3 class="text-sm font-bold text-gray-500 uppercase mb-4">Atendimentos por Status</h3>
-                <canvas id="graficoStatus"></canvas>
-            </div>
-            <div class="bg-white p-6 rounded-xl shadow-md border border-gray-200">
-                <h3 class="text-sm font-bold text-gray-500 uppercase mb-4">Volume Financeiro (R$)</h3>
-                <canvas id="graficoFinanceiro"></canvas>
-            </div>
+    <!-- INDICADORES FINANCEIROS (KPIs) -->
+    <div class="max-w-7xl mx-auto grid grid-cols-2 md:grid-cols-5 gap-4 mb-6" id="painelResumo">
+        <div class="col-span-full text-center py-6 text-purple-600 font-bold">Buscando inteligência de dados...</div>
+    </div>
+
+    <!-- ÁREA DE GRÁFICOS -->
+    <div class="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div class="bg-white p-6 rounded-xl shadow-md border border-gray-200">
+            <h3 class="text-sm font-bold text-gray-500 uppercase mb-4">Volume por Status de Atendimento</h3>
+            <canvas id="graficoStatus"></canvas>
+        </div>
+        <div class="bg-white p-6 rounded-xl shadow-md border border-gray-200">
+            <h3 class="text-sm font-bold text-gray-500 uppercase mb-4">Composição Financeira (R$)</h3>
+            <canvas id="graficoFinanceiro"></canvas>
         </div>
     </div>
 
     <script>
         const URL_API = "https://script.google.com/macros/s/AKfycby-1WKshFbFVNfQliUY65_krsep0MnR3HEi6JlYEUG7mSiPVHIwPwRdIlSVnXbVFVQm/exec";
+        let baseDadosGlobal = [];
+        let grafStatusInstancia = null;
+        let grafFinInstancia = null;
 
         function validarAcesso() {
             const sessao = localStorage.getItem("teleamei_sessao");
@@ -58,60 +79,148 @@
         function carregarDashboard() {
             fetch(URL_API)
                 .then(res => res.json())
-                .then(res => { if (res.status === "sucesso") renderizarBI(res.dados); })
+                .then(res => { 
+                    if (res.status === "sucesso") {
+                        baseDadosGlobal = res.dados;
+                        popularDropdowns(baseDadosGlobal);
+                        aplicarFiltros();
+                    }
+                })
                 .catch(err => console.error("Erro no BI", err));
         }
 
-        function renderizarBI(dados) {
-            let totalFaturamento = 0, lucroLiquido = 0, volumeExames = 0, repsMedicos = 0;
-            let countRealizados = 0, countFaltas = 0, countPendentes = 0;
+        function popularDropdowns(dados) {
+            const unidades = new Set();
+            const operadores = new Set();
+            const medicos = new Set();
+            const especialidades = new Set();
 
             dados.forEach(item => {
-                totalFaturamento += parseFloat(item.Valor_Consulta || 0);
-                volumeExames += parseFloat(item.Total_Exames || 0);
-                lucroLiquido += parseFloat(item.Lucro_Clinica || 0);
-                repsMedicos += parseFloat(item.Repasse_Medico || 0);
+                if(item.Unidade) unidades.add(item.Unidade);
+                const op = item.Operador_Responsavel || item["Operador Responsavel"];
+                if(op && op !== "Sistema") operadores.add(op);
+                if(item.Medico_Responsavel) medicos.add(item.Medico_Responsavel);
+                if(item.Especialidade || item.especialidade) especialidades.add(item.Especialidade || item.especialidade);
+            });
 
-                const s = (item.Status_Consulta || "").toLowerCase();
-                if (s === 'sim') countRealizados++;
-                else if (s === 'nao') countFaltas++;
-                else countPendentes++;
+            const preencher = (id, setValores) => {
+                const select = document.getElementById(id);
+                Array.from(setValores).sort().forEach(val => {
+                    select.innerHTML += `<option value="${val}">${val}</option>`;
+                });
+            };
+
+            preencher('filtroUnidade', unidades);
+            preencher('filtroOperador', operadores);
+            preencher('filtroMedico', medicos);
+            preencher('filtroEspecialidade', especialidades);
+        }
+
+        function limparFiltros() {
+            document.getElementById('dataInicio').value = '';
+            document.getElementById('dataFim').value = '';
+            document.getElementById('filtroUnidade').value = '';
+            document.getElementById('filtroOperador').value = '';
+            document.getElementById('filtroMedico').value = '';
+            document.getElementById('filtroEspecialidade').value = '';
+            aplicarFiltros();
+        }
+
+        function aplicarFiltros() {
+            const dataInicio = document.getElementById('dataInicio').value ? new Date(document.getElementById('dataInicio').value + "T00:00:00") : null;
+            const dataFim = document.getElementById('dataFim').value ? new Date(document.getElementById('dataFim').value + "T23:59:59") : null;
+            const unidade = document.getElementById('filtroUnidade').value.toLowerCase();
+            const operador = document.getElementById('filtroOperador').value.toLowerCase();
+            const medico = document.getElementById('filtroMedico').value.toLowerCase();
+            const especialidade = document.getElementById('filtroEspecialidade').value.toLowerCase();
+
+            const dadosFiltrados = baseDadosGlobal.filter(item => {
+                let passaData = true;
+                if (dataInicio || dataFim) {
+                    const dataItem = new Date(item.Data_Registro || item.Data_Agendada);
+                    if (dataInicio && dataItem < dataInicio) passaData = false;
+                    if (dataFim && dataItem > dataFim) passaData = false;
+                }
+
+                const passaUnidade = unidade === "" || (item.Unidade || "").toLowerCase() === unidade;
+                const opAtual = (item.Operador_Responsavel || item["Operador Responsavel"] || "").toLowerCase();
+                const passaOperador = operador === "" || opAtual === operador;
+                const passaMedico = medico === "" || (item.Medico_Responsavel || "").toLowerCase() === medico;
+                const espAtual = (item.Especialidade || item.especialidade || "").toLowerCase();
+                const passaEspecialidade = especialidade === "" || espAtual === especialidade;
+
+                return passaData && passaUnidade && passaOperador && passaMedico && passaEspecialidade;
+            });
+
+            renderizarBI(dadosFiltrados);
+        }
+
+        function renderizarBI(dados) {
+            let faturamentoConsultas = 0, faturamentoExames = 0, custoExames = 0, lucroClinica = 0, taxaTeleAmei = 0;
+            let statusCount = {};
+
+            dados.forEach(item => {
+                faturamentoConsultas += parseFloat(item.Valor_Consulta || 0);
+                faturamentoExames += parseFloat(item.Total_Exames || 0);
+                custoExames += parseFloat(item.Custo_Exames || 0);
+                lucroClinica += parseFloat(item.Lucro_Clinica || 0);
+                taxaTeleAmei += parseFloat(item.Taxa_TeleAmei_Total || item["Taxa TeleAmei Total"] || 0);
+
+                const status = item.Status_Consulta || "Pendente";
+                statusCount[status] = (statusCount[status] || 0) + 1;
             });
 
             const f = (val) => "R$ " + val.toLocaleString('pt-BR', {minimumFractionDigits: 2});
 
+            // RENDERIZAR KPIs
             document.getElementById('painelResumo').innerHTML = `
-                <div class="bg-white p-6 rounded-xl shadow-md border-t-4 border-blue-500">
-                    <p class="text-xs font-bold text-gray-500 uppercase">Faturamento Bruto</p>
-                    <p class="text-2xl font-black text-gray-800 mt-2">${f(totalFaturamento + volumeExames)}</p>
+                <div class="bg-white p-5 rounded-xl shadow-sm border-l-4 border-blue-500">
+                    <p class="text-[10px] font-bold text-gray-500 uppercase">Consultas (Bruto)</p>
+                    <p class="text-xl font-black text-gray-800 mt-1">${f(faturamentoConsultas)}</p>
                 </div>
-                <div class="bg-white p-6 rounded-xl shadow-md border-t-4 border-orange-500">
-                    <p class="text-xs font-bold text-gray-500 uppercase">Repasse Médico</p>
-                    <p class="text-2xl font-black text-gray-800 mt-2">${f(repsMedicos)}</p>
+                <div class="bg-white p-5 rounded-xl shadow-sm border-l-4 border-teal-500">
+                    <p class="text-[10px] font-bold text-gray-500 uppercase">Exames (Bruto)</p>
+                    <p class="text-xl font-black text-gray-800 mt-1">${f(faturamentoExames)}</p>
                 </div>
-                <div class="bg-white p-6 rounded-xl shadow-md border-t-4 border-teal-500">
-                    <p class="text-xs font-bold text-gray-500 uppercase">Volume Exames</p>
-                    <p class="text-2xl font-black text-gray-800 mt-2">${f(volumeExames)}</p>
+                <div class="bg-white p-5 rounded-xl shadow-sm border-l-4 border-red-500">
+                    <p class="text-[10px] font-bold text-red-500 uppercase">Custo Exames</p>
+                    <p class="text-xl font-black text-red-600 mt-1">${f(custoExames)}</p>
                 </div>
-                <div class="bg-white p-6 rounded-xl shadow-md border-t-4 border-green-500 bg-green-50">
-                    <p class="text-xs font-bold text-green-700 uppercase">Lucro Líquido Clínica</p>
-                    <p class="text-2xl font-black text-green-700 mt-2">${f(lucroLiquido)}</p>
+                <div class="bg-white p-5 rounded-xl shadow-sm border-l-4 border-purple-500 bg-purple-50">
+                    <p class="text-[10px] font-bold text-purple-700 uppercase">Taxa TeleAmei</p>
+                    <p class="text-xl font-black text-purple-700 mt-1">${f(taxaTeleAmei)}</p>
+                </div>
+                <div class="bg-white p-5 rounded-xl shadow-sm border-l-4 border-green-500 bg-green-50">
+                    <p class="text-[10px] font-bold text-green-700 uppercase">Lucro Clínica Líquido</p>
+                    <p class="text-xl font-black text-green-700 mt-1">${f(lucroClinica)}</p>
                 </div>
             `;
 
-            new Chart(document.getElementById('graficoStatus'), {
+            // DESTRUIR GRÁFICOS ANTIGOS (Evita sobreposição ao filtrar)
+            if (grafStatusInstancia) grafStatusInstancia.destroy();
+            if (grafFinInstancia) grafFinInstancia.destroy();
+
+            // RENDERIZAR GRÁFICOS
+            const labelsStatus = Object.keys(statusCount);
+            const dataStatus = Object.values(statusCount);
+            
+            grafStatusInstancia = new Chart(document.getElementById('graficoStatus'), {
                 type: 'doughnut',
                 data: {
-                    labels: ['Realizados', 'Faltas', 'Pendentes'],
-                    datasets: [{ data: [countRealizados, countFaltas, countPendentes], backgroundColor: ['#10B981', '#EF4444', '#F59E0B'] }]
+                    labels: labelsStatus,
+                    datasets: [{ data: dataStatus, backgroundColor: ['#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6', '#14B8A6'] }]
                 }
             });
 
-            new Chart(document.getElementById('graficoFinanceiro'), {
+            grafFinInstancia = new Chart(document.getElementById('graficoFinanceiro'), {
                 type: 'bar',
                 data: {
-                    labels: ['Faturamento Consultas', 'Faturamento Exames', 'Lucro Líquido'],
-                    datasets: [{ label: 'Valores (R$)', data: [totalFaturamento, volumeExames, lucroLiquido], backgroundColor: ['#3B82F6', '#14B8A6', '#10B981'] }]
+                    labels: ['Faturamento Consultas', 'Faturamento Exames', 'Custos Exames', 'Lucro Clínica Líquido', 'Taxa TeleAmei'],
+                    datasets: [{ 
+                        label: 'Valores Financeiros (R$)', 
+                        data: [faturamentoConsultas, faturamentoExames, custoExames, lucroClinica, taxaTeleAmei], 
+                        backgroundColor: ['#3B82F6', '#14B8A6', '#EF4444', '#10B981', '#8B5CF6'] 
+                    }]
                 }
             });
         }
