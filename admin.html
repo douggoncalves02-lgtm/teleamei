@@ -206,9 +206,11 @@
                     selectMed.innerHTML = '<option value="">Selecione o Médico...</option>';
                     selectUnd.innerHTML = '<option value="">Selecione a Unidade...</option>';
                     
-                    const setUnd = new Set();
+                    // Injeta as Unidades Base Padrão para nunca ficar vazio
+                    const setUnd = new Set(['Barretos', 'Cotia', 'Campinas', 'Camaragibe', 'Campinas Sudoeste']);
                     
                     retorno.dados.forEach(u => {
+                        // Varre a base para adicionar outras unidades extras que possam existir
                         const unds = u.Unidades_Vinculadas || u.unidades || u.Unidades || "";
                         if (unds) unds.split(',').forEach(un => { if (un.trim() !== "") setUnd.add(un.trim()); });
                         
@@ -225,6 +227,7 @@
                         }
                     });
 
+                    // Renderiza as unidades em ordem alfabética
                     Array.from(setUnd).sort().forEach(un => {
                         const op = document.createElement('option');
                         op.value = un; op.innerText = un;

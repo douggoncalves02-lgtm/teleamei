@@ -7,239 +7,118 @@
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-gray-100 min-h-screen p-4 md:p-8">
-
-    <!-- BARRA DE NAVEGAÇÃO -->
-    <div class="max-w-5xl mx-auto flex justify-between items-center mb-6 bg-indigo-900 text-white p-4 rounded-lg shadow">
-        <div class="font-bold text-lg">TeleAmei 💙 | Gestão de Equipe & Permissões</div>
-        <div class="flex items-center space-x-3">
-            <span class="text-sm">Admin: <strong id="usuarioLogadoNome">Carregando...</strong></span>
-            <button onclick="window.location.href='dashboard.html'" class="bg-purple-600 hover:bg-purple-700 px-3 py-1 rounded text-sm font-bold shadow transition">📊 BI</button>
-            <button onclick="window.location.href='crm_operacoes.html'" class="bg-indigo-500 hover:bg-indigo-600 px-3 py-1 rounded text-sm font-bold shadow transition">Voltar</button>
-            <button onclick="fazerLogout()" class="bg-red-500 hover:bg-red-600 px-3 py-1 rounded text-sm font-bold shadow transition">Sair</button>
-        </div>
+    
+    <div class="max-w-4xl mx-auto flex justify-between items-center mb-6 bg-indigo-900 text-white p-4 rounded-lg shadow">
+        <div class="font-bold text-lg">TeleAmei 💙 | Gestão de Usuários</div>
+        <button onclick="window.location.href='crm_operacoes.html'" class="bg-indigo-600 hover:bg-indigo-700 px-4 py-2 rounded text-sm font-bold shadow transition">Voltar ao CRM</button>
     </div>
 
-    <div class="max-w-5xl mx-auto space-y-8">
-        <!-- BLOCO 1: EMISSOR DE COMUNICADOS INTERNOS -->
-        <div class="bg-white p-6 rounded-xl shadow-lg border-t-4 border-amber-500">
-            <h2 class="text-lg font-bold text-amber-900 mb-2 flex items-center gap-2">
-                <span>📢</span> Disparar Comunicado Interno (Aviso Global)
-            </h2>
-            <p class="text-xs text-gray-500 mb-4">Este aviso aparecerá bloqueando a tela de todos os operadores e usuários até que cliquem em "Estou ciente da informação".</p>
-            
-            <div class="space-y-4">
-                <div>
-                    <label class="block text-xs font-bold text-gray-700 uppercase">Título do Aviso</label>
-                    <input type="text" id="tituloAviso" placeholder="Ex: Nova atualização do sistema de exames" class="mt-1 block w-full px-4 py-2 border rounded-md text-sm">
-                </div>
-                <div>
-                    <label class="block text-xs font-bold text-gray-700 uppercase">Mensagem Detalhada</label>
-                    <textarea id="mensagemAviso" placeholder="Descreva as instruções..." class="mt-1 block w-full px-4 py-2 border rounded-md text-sm h-20"></textarea>
-                </div>
-                <button onclick="dispararAviso()" class="bg-amber-600 hover:bg-amber-700 text-white font-bold py-2.5 px-6 rounded-lg text-xs shadow transition">
-                    Disparar Comunicado Obrigatório
-                </button>
+    <div class="max-w-4xl mx-auto bg-white p-6 md:p-8 rounded-xl shadow-lg border-t-4 border-emerald-600">
+        <h2 class="text-2xl font-bold text-slate-800 mb-6">Cadastrar Novo Colaborador</h2>
+        
+        <form id="formUsuario" class="space-y-6">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div><label class="block text-sm font-bold text-gray-700">Nome Completo <span class="text-red-500">*</span></label><input type="text" id="nomeUsuario" class="mt-1 w-full p-3 border rounded bg-gray-50" required></div>
+                <div><label class="block text-sm font-bold text-gray-700">E-mail (Login) <span class="text-red-500">*</span></label><input type="email" id="emailUsuario" class="mt-1 w-full p-3 border rounded bg-gray-50" required></div>
+                <div><label class="block text-sm font-bold text-gray-700">Telefone / WhatsApp <span class="text-red-500">*</span></label><input type="text" id="telefoneUsuario" class="mt-1 w-full p-3 border rounded bg-gray-50" required></div>
+                <div><label class="block text-sm font-bold text-gray-700">Senha de Acesso <span class="text-red-500">*</span></label><input type="password" id="senhaUsuario" class="mt-1 w-full p-3 border rounded bg-gray-50" required></div>
             </div>
-        </div>
 
-        <!-- BLOCO 2: CADASTRO DE NOVO COLABORADOR -->
-        <div class="bg-white p-6 rounded-xl shadow-lg border-t-4 border-indigo-800">
-            <h2 class="text-xl font-bold text-indigo-800 mb-6">Cadastrar Novo Colaborador</h2>
-
-            <form id="formUsuario" class="space-y-6">
-                <div class="grid grid-cols-2 gap-4 bg-gray-50 p-4 rounded-lg border border-gray-200">
-                    <div class="col-span-2"><label class="block text-sm font-medium text-gray-700">Nome Completo</label><input type="text" id="nome" class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md"></div>
-                    <div><label class="block text-sm font-medium text-gray-700">Telefone / WhatsApp</label><input type="tel" id="telefone" placeholder="(11) 99999-9999" class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md"></div>
-                    <div><label class="block text-sm font-medium text-gray-700">E-mail (Login)</label><input type="email" id="email" class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md"></div>
-                    <div><label class="block text-sm font-medium text-gray-700">Senha Provisória</label><input type="password" id="senha" class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md"></div>
-                    
-                    <div class="mt-4 col-span-2 md:col-span-1">
-                        <label class="block text-sm font-medium text-indigo-900 mb-2">Perfil de Acesso</label>
-                        <select id="perfil" onchange="alternarCampos()" class="w-full border-2 border-indigo-300 p-2 rounded font-bold bg-white">
-                            <option value="">Selecione o Nível...</option>
-                            <option value="Admin">Administrativo (Acesso Total)</option>
-                            <option value="Medico">Médico (Corpo Clínico)</option>
-                            <option value="Usuario">Operação (Recepção/Gestão)</option>
-                        </select>
-                    </div>
-                </div>
-
-                <div id="camposMedico" class="hidden bg-blue-50 p-4 rounded-lg border border-blue-200">
-                    <div class="grid grid-cols-2 gap-4 mb-4">
-                        <div><label class="block text-sm font-medium text-blue-900">CRM</label><input type="text" id="crm" class="mt-1 block w-full px-4 py-2 border border-blue-300 rounded-md"></div>
-                        <div>
-                            <label class="block text-sm font-medium text-blue-900">Especialidades</label>
-                            <select id="especialidades" multiple class="mt-1 block w-full px-4 py-2 border border-blue-300 rounded-md h-24 bg-white">
-                                <option value="Cardiologia">Cardiologia</option>
-                                <option value="Pediatria">Pediatria</option>
-                                <option value="Clínico Geral">Clínico Geral</option>
-                                <option value="Dermatologia">Dermatologia</option>
-                            </select>
-                        </div>
-                    </div>
-                </div>
-
-                <div id="camposUsuario" class="hidden bg-green-50 p-4 rounded-lg border border-green-200">
-                    <div class="grid grid-cols-2 gap-4">
-                        <div>
-                            <label class="block text-sm font-medium text-green-900">Unidades</label>
-                            <select id="unidades" multiple class="mt-1 block w-full px-4 py-2 border border-green-300 rounded-md h-24 bg-white">
-                                <option value="Cotia">Cotia</option>
-                                <option value="Barretos">Barretos</option>
-                                <option value="Campinas">Campinas</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium text-green-900">Departamentos</label>
-                            <select id="departamentos" multiple class="mt-1 block w-full px-4 py-2 border border-green-300 rounded-md h-24 bg-white">
-                                <option value="Agendamento">Agendamento</option>
-                                <option value="Pós-consulta">Pós-consulta</option>
-                                <option value="Financeiro">Financeiro</option>
-                            </select>
-                        </div>
-                    </div>
-                </div>
-
-                <button type="button" onclick="montarPayload()" class="w-full bg-indigo-800 text-white py-3.5 rounded-xl font-bold hover:bg-indigo-900 transition shadow-md uppercase">
-                    Cadastrar Colaborador
-                </button>
-            </form>
-        </div>
-
-        <!-- BLOCO 3: LISTA E CONTROLE DE ATIVAÇÃO DE USUÁRIOS (AUSÊNCIAS / FÉRIAS) -->
-        <div class="bg-white p-6 rounded-xl shadow-lg border-t-4 border-slate-700">
-            <h2 class="text-xl font-bold text-slate-800 mb-4">Quadro de Colaboradores e Escala de Ausências</h2>
-            <p class="text-xs text-gray-500 mb-6">Usuários marcados como "Ausente" são automaticamente removidos da esteira de distribuição de novas consultas.</p>
-
-            <div class="overflow-x-auto">
-                <table class="w-full text-left border-collapse text-sm">
-                    <thead>
-                        <tr class="bg-slate-100 border-b text-slate-700 text-xs uppercase">
-                            <th class="p-3">Nome</th>
-                            <th class="p-3">E-mail</th>
-                            <th class="p-3">Perfil</th>
-                            <th class="p-3 text-center">Status Fila</th>
-                            <th class="p-3 text-center">Ação</th>
-                        </tr>
-                    </thead>
-                    <tbody id="tabelaUsuarios">
-                        <tr><td colspan="5" class="p-4 text-center text-gray-500">Carregando quadro de equipe...</td></tr>
-                    </tbody>
-                </table>
+            <div class="border-t border-gray-200 pt-4">
+                <label class="block text-sm font-bold text-gray-700 mb-2">Perfil de Acesso <span class="text-red-500">*</span></label>
+                <select id="perfilUsuario" onchange="verificarPerfil()" class="w-full md:w-1/3 p-3 border rounded bg-white font-bold text-indigo-900" required>
+                    <option value="">Selecione...</option>
+                    <option value="Admin">Administrador (Acesso Total)</option>
+                    <option value="Usuario">Operador (CRM)</option>
+                    <option value="Medico">Médico (Prontuário)</option>
+                </select>
             </div>
-        </div>
+
+            <!-- BLOCO DE UNIDADES (OBRIGATÓRIO E MÚLTIPLO) -->
+            <div class="border-t border-gray-200 pt-4 bg-emerald-50 p-4 rounded-lg border border-emerald-200">
+                <label class="block text-sm font-bold text-emerald-900 mb-3">Unidades de Atendimento (Selecione 1 ou mais) <span class="text-red-500">*</span></label>
+                <div class="grid grid-cols-2 md:grid-cols-3 gap-3">
+                    <label class="flex items-center space-x-2 bg-white p-2 rounded border border-gray-300 shadow-sm cursor-pointer"><input type="checkbox" value="Barretos" class="chk-unidade w-4 h-4 text-emerald-600"> <span class="text-sm font-bold">Barretos</span></label>
+                    <label class="flex items-center space-x-2 bg-white p-2 rounded border border-gray-300 shadow-sm cursor-pointer"><input type="checkbox" value="Campinas" class="chk-unidade w-4 h-4 text-emerald-600"> <span class="text-sm font-bold">Campinas</span></label>
+                    <label class="flex items-center space-x-2 bg-white p-2 rounded border border-gray-300 shadow-sm cursor-pointer"><input type="checkbox" value="Campinas Sudoeste" class="chk-unidade w-4 h-4 text-emerald-600"> <span class="text-sm font-bold">Camp. Sudoeste</span></label>
+                    <label class="flex items-center space-x-2 bg-white p-2 rounded border border-gray-300 shadow-sm cursor-pointer"><input type="checkbox" value="Camaragibe" class="chk-unidade w-4 h-4 text-emerald-600"> <span class="text-sm font-bold">Camaragibe</span></label>
+                    <label class="flex items-center space-x-2 bg-white p-2 rounded border border-gray-300 shadow-sm cursor-pointer"><input type="checkbox" value="Cotia" class="chk-unidade w-4 h-4 text-emerald-600"> <span class="text-sm font-bold">Cotia</span></label>
+                </div>
+            </div>
+
+            <div id="blocoMedico" class="hidden border-t border-blue-200 pt-4 bg-blue-50 p-4 rounded-lg">
+                <h3 class="text-sm font-bold text-blue-900 mb-3">Dados Médicos</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div><label class="block text-xs font-bold text-gray-700">CRM</label><input type="text" id="crmMedico" class="mt-1 w-full p-2 border rounded bg-white"></div>
+                    <div><label class="block text-xs font-bold text-gray-700">Especialidade Principal</label><input type="text" id="especialidadeMedico" class="mt-1 w-full p-2 border rounded bg-white"></div>
+                </div>
+            </div>
+
+            <button type="button" id="btnSalvarUsuario" onclick="salvarUsuario()" class="w-full bg-emerald-600 text-white font-bold py-4 rounded-xl shadow-lg hover:bg-emerald-700 transition uppercase text-lg mt-4">
+                Gravar Colaborador
+            </button>
+        </form>
     </div>
 
     <script>
         const URL_API = "https://script.google.com/macros/s/AKfycby-1WKshFbFVNfQliUY65_krsep0MnR3HEi6JlYEUG7mSiPVHIwPwRdIlSVnXbVFVQm/exec";
 
-        function validarAcesso() {
+        window.onload = function() {
             const sessao = localStorage.getItem("teleamei_sessao");
-            if (!sessao) { window.location.href = "login.html"; return; }
-            const usuarioLogado = JSON.parse(sessao);
-            if (usuarioLogado.perfil !== "Admin") {
-                alert("Acesso restrito a Administradores.");
-                window.location.href = "crm_operacoes.html";
-                return;
+            if (!sessao || JSON.parse(sessao).perfil !== "Admin") {
+                alert("Acesso negado. Apenas Administradores."); window.location.href = "login.html";
             }
-            document.getElementById('usuarioLogadoNome').innerText = usuarioLogado.nome;
-            carregarTabelaUsuarios();
+        };
+
+        function verificarPerfil() {
+            const perfil = document.getElementById('perfilUsuario').value;
+            if (perfil === "Medico") document.getElementById('blocoMedico').classList.remove('hidden');
+            else document.getElementById('blocoMedico').classList.add('hidden');
         }
 
-        function fazerLogout() { localStorage.removeItem("teleamei_sessao"); window.location.href = "login.html"; }
+        function salvarUsuario() {
+            const nome = document.getElementById('nomeUsuario').value.trim();
+            const email = document.getElementById('emailUsuario').value.trim();
+            const telefone = document.getElementById('telefoneUsuario').value.trim();
+            const senha = document.getElementById('senhaUsuario').value.trim();
+            const perfil = document.getElementById('perfilUsuario').value;
 
-        function carregarTabelaUsuarios() {
-            fetch(`${URL_API}?acao=listar_usuarios`).then(res => res.json()).then(res => {
-                const tbody = document.getElementById('tabelaUsuarios');
-                tbody.innerHTML = "";
-                if (res.status === "sucesso") {
-                    res.dados.forEach(u => {
-                        const statusAtivo = u.Status === "Ativo";
-                        const badgeClass = statusAtivo ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800";
-                        const textoBtn = statusAtivo ? "Marcar Ausente" : "Ativar na Fila";
-                        const classBtn = statusAtivo ? "bg-red-500 hover:bg-red-600" : "bg-green-600 hover:bg-green-700";
-                        const novoStatus = statusAtivo ? "Ausente" : "Ativo";
+            if (!nome || !email || !telefone || !senha || !perfil) {
+                return alert("❌ Preencha todos os campos obrigatórios (*).");
+            }
 
-                        tbody.innerHTML += `
-                            <tr class="border-b hover:bg-slate-50">
-                                <td class="p-3 font-bold text-slate-800">${u.Nome_Completo}</td>
-                                <td class="p-3 text-gray-600 text-xs">${u.Email}</td>
-                                <td class="p-3 font-semibold">${u.Perfil}</td>
-                                <td class="p-3 text-center"><span class="px-2 py-1 rounded text-xs font-bold ${badgeClass}">${u.Status}</span></td>
-                                <td class="p-3 text-center">
-                                    <button onclick="alternarStatus('${u.ID_Usuario}', '${novoStatus}')" class="${classBtn} text-white px-3 py-1 rounded text-xs font-bold shadow transition">
-                                        ${textoBtn}
-                                    </button>
-                                </td>
-                            </tr>
-                        `;
-                    });
-                }
-            });
-        }
+            // Validação Obrigatória de Múltiplas Unidades
+            const unidadesSelecionadas = Array.from(document.querySelectorAll('.chk-unidade:checked')).map(cb => cb.value);
+            if (unidadesSelecionadas.length === 0) {
+                return alert("❌ Selecione pelo menos UMA unidade de atendimento!");
+            }
 
-        function alternarStatus(idUsuario, novoStatus) {
-            fetch(URL_API, {
-                method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-                body: JSON.stringify({ acao: "alternar_status_usuario", id_usuario: idUsuario, novoStatus: novoStatus })
-            }).then(() => setTimeout(carregarTabelaUsuarios, 1000));
-        }
-
-        function dispararAviso() {
-            const titulo = document.getElementById('tituloAviso').value;
-            const mensagem = document.getElementById('mensagemAviso').value;
-            const sessao = JSON.parse(localStorage.getItem("teleamei_sessao"));
-
-            if(!titulo || !mensagem) return alert("Preencha título e mensagem do aviso.");
-
-            fetch(URL_API, {
-                method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-                body: JSON.stringify({ acao: "criar_comunicado", titulo: titulo, mensagem: mensagem, autor: sessao.nome })
-            }).then(() => {
-                alert("✅ Comunicado interno enviado com sucesso!");
-                document.getElementById('tituloAviso').value = "";
-                document.getElementById('mensagemAviso').value = "";
-            });
-        }
-
-        function alternarCampos() {
-            const perfil = document.getElementById('perfil').value;
-            document.getElementById('camposMedico').classList.add('hidden');
-            document.getElementById('camposUsuario').classList.add('hidden');
-            if (perfil === 'Medico') document.getElementById('camposMedico').classList.remove('hidden');
-            if (perfil === 'Usuario') document.getElementById('camposUsuario').classList.remove('hidden');
-        }
-
-        function extrairMultiplos(id) {
-            const select = document.getElementById(id);
-            return select ? Array.from(select.selectedOptions).map(opt => opt.value) : [];
-        }
-
-        function montarPayload() {
             const payload = {
                 acao: "criar_usuario",
-                nome: document.getElementById('nome').value,
-                telefone: document.getElementById('telefone').value,
-                email: document.getElementById('email').value,
-                senha: document.getElementById('senha').value,
-                perfil: document.getElementById('perfil').value,
-                crm: document.getElementById('crm') ? document.getElementById('crm').value : "",
-                especialidades: extrairMultiplos('especialidades'),
-                unidades: extrairMultiplos('unidades'),
-                departamentos: extrairMultiplos('departamentos')
+                nome: nome,
+                email: email,
+                telefone: telefone,
+                senha: senha,
+                perfil: perfil,
+                unidades: unidadesSelecionadas,
+                crm: perfil === "Medico" ? document.getElementById('crmMedico').value : "",
+                especialidades: perfil === "Medico" ? [document.getElementById('especialidadeMedico').value] : []
             };
+
+            const btn = document.getElementById('btnSalvarUsuario');
+            btn.innerText = "Gravando..."; btn.disabled = true;
 
             fetch(URL_API, {
                 method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'text/plain;charset=utf-8' },
                 body: JSON.stringify(payload)
             }).then(() => {
-                alert("✅ Colaborador cadastrado!");
+                alert("✅ Colaborador cadastrado com sucesso!");
                 document.getElementById('formUsuario').reset();
-                carregarTabelaUsuarios();
+                verificarPerfil();
+            }).finally(() => {
+                btn.innerText = "Gravar Colaborador"; btn.disabled = false;
             });
         }
-
-        window.onload = validarAcesso;
     </script>
 </body>
 </html>
