@@ -123,6 +123,33 @@
         const URL_API = "https://script.google.com/macros/s/AKfycby-1WKshFbFVNfQliUY65_krsep0MnR3HEi6JlYEUG7mSiPVHIwPwRdIlSVnXbVFVQm/exec";
         let usuarioLogado = null; let idEdicao = null; let anexosGlobais = [];
 
+        // HIGIENIZADOR 360º PARA DATAS E HORAS (Cura bugs legados)
+        function higienizarData(val) {
+            if (!val) return "";
+            let s = String(val).trim();
+            if (s.includes("1899") || s.includes("1900")) return ""; 
+            if (s.includes("T")) {
+                let d = new Date(s);
+                if (!isNaN(d)) return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+            }
+            if (s.includes("/")) {
+                let p = s.split('/');
+                if (p.length === 3) return `${p[2]}-${p[1]}-${p[0]}`;
+            }
+            return s.substring(0, 10);
+        }
+
+        function higienizarHora(val) {
+            if (!val) return "";
+            let s = String(val).trim();
+            if (/^\d{2}:\d{2}/.test(s)) return s.substring(0, 5);
+            if (s.includes("T")) {
+                let d = new Date(s);
+                if (!isNaN(d)) return String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0');
+            }
+            return s.substring(0, 5);
+        }
+
         const OmnichannelService = {
             executarEnvio: function(telefone, mensagem) {
                 const numeroLimpo = telefone.replace(/\D/g, '');
@@ -143,21 +170,15 @@
             const tel = document.getElementById('telefonePaciente').value;
             const pac = document.getElementById('nomePaciente').value || "Paciente";
             const med = document.getElementById('medicoResponsavel').value || "médico";
-            
             if (!tel) return alert("Preencha o Telefone / WhatsApp.");
             let msg = "";
 
-            if (tipo === 'confirmacao') {
-                msg = OmnichannelService.templateConfirmacao(pac, med, document.getElementById('unidadeAtendimento').value || "clínica");
-            } else if (tipo === 'orcamento') {
-                msg = OmnichannelService.templateOrcamento(pac, med, document.getElementById('orcamentoTotal').value || "0.00");
-            } else if (tipo === 'documentos') {
+            if (tipo === 'confirmacao') msg = OmnichannelService.templateConfirmacao(pac, med, document.getElementById('unidadeAtendimento').value || "clínica");
+            else if (tipo === 'orcamento') msg = OmnichannelService.templateOrcamento(pac, med, document.getElementById('orcamentoTotal').value || "0.00");
+            else if (tipo === 'documentos') {
                 const ativos = anexosGlobais.filter(a => a.status === 'ativo');
                 if (ativos.length === 0) return alert("Nenhum documento ativo salvo na nuvem. Salve o prontuário primeiro.");
-                
-                let linksFormatados = "";
-                let temExame = false;
-                
+                let linksFormatados = ""; let temExame = false;
                 ativos.forEach(tag => { 
                     let nomeCategoria = tag.nome.split(' - ')[0]; 
                     if (nomeCategoria === 'Sol. Exames') nomeCategoria = 'Solicitação de Exames';
@@ -165,7 +186,6 @@
                     linksFormatados += `\n📄 *${nomeCategoria}*:\n${tag.url}\n`; 
                     if(tag.nome.includes('Sol. Exames')) temExame = true;
                 });
-                
                 msg = OmnichannelService.templateDocumentos(pac, med, linksFormatados, temExame);
             }
             OmnichannelService.executarEnvio(tel, msg);
@@ -183,15 +203,13 @@
             } else if (usuarioLogado.perfil !== "Medico") {
                 document.getElementById('btnDesempenhoNav').classList.remove('hidden');
             }
-            if (usuarioLogado.perfil === "Medico") {
-                document.getElementById('blocoMedico').classList.remove('hidden');
-            } else { 
+            if (usuarioLogado.perfil === "Medico") document.getElementById('blocoMedico').classList.remove('hidden');
+            else { 
                 document.getElementById('botoesOperacao').classList.remove('hidden'); 
                 document.getElementById('blocoPreConsulta').classList.remove('hidden'); 
                 document.getElementById('botoesMedico').classList.remove('hidden');
             }
-            carregarDadosDinamicos(); 
-            verificarModoEdicao();
+            carregarDadosDinamicos(); verificarModoEdicao();
         }
 
         function fazerLogout() { localStorage.removeItem("teleamei_sessao"); window.location.href = "login.html"; }
@@ -202,34 +220,21 @@
                 if (retorno.status === "sucesso") {
                     const selectMed = document.getElementById('medicoResponsavel');
                     const selectUnd = document.getElementById('unidadeAtendimento');
-                    
                     selectMed.innerHTML = '<option value="">Selecione o Médico...</option>';
                     selectUnd.innerHTML = '<option value="">Selecione a Unidade...</option>';
-                    
                     const setUnd = new Set(['Barretos', 'Cotia', 'Campinas', 'Camaragibe', 'Campinas Sudoeste']);
                     
                     retorno.dados.forEach(u => {
                         const unds = u.Unidades_Vinculadas || u.unidades || u.Unidades || "";
                         if (unds) unds.split(',').forEach(un => { if (un.trim() !== "") setUnd.add(un.trim()); });
-                        
                         const perfil = String(u.Perfil || u.perfil || "").toLowerCase().trim();
                         const status = String(u.Status || u.status || "").toLowerCase().trim();
-                        
                         if (perfil === "medico" && status === "ativo") {
                             const nomeM = u.Nome_Completo || u.nome || u.Nome || "";
-                            if (nomeM) {
-                                const op = document.createElement('option');
-                                op.value = nomeM; op.innerText = nomeM;
-                                selectMed.appendChild(op);
-                            }
+                            if (nomeM) { const op = document.createElement('option'); op.value = nomeM; op.innerText = nomeM; selectMed.appendChild(op); }
                         }
                     });
-
-                    Array.from(setUnd).sort().forEach(un => {
-                        const op = document.createElement('option');
-                        op.value = un; op.innerText = un;
-                        selectUnd.appendChild(op);
-                    });
+                    Array.from(setUnd).sort().forEach(un => { const op = document.createElement('option'); op.value = un; op.innerText = un; selectUnd.appendChild(op); });
                 }
             });
         }
@@ -238,9 +243,7 @@
             const normalizedObj = {};
             for (let key in obj) { normalizedObj[key.toLowerCase().trim()] = obj[key]; }
             for (let chave of possiveisChaves) {
-                if (normalizedObj[chave] !== undefined && normalizedObj[chave] !== null && normalizedObj[chave] !== "") {
-                    return normalizedObj[chave];
-                }
+                if (normalizedObj[chave] !== undefined && normalizedObj[chave] !== null && normalizedObj[chave] !== "") return normalizedObj[chave];
             }
             return "";
         }
@@ -262,19 +265,18 @@
             document.getElementById('telefonePaciente').value = lerValor(dados, ['telefone', 'whatsapp', 'contato']);
             document.getElementById('especialidadeAgendada').value = lerValor(dados, ['especialidade', 'especialidade_solicitada']);
             
-            document.getElementById('dataAgendada').value = lerValor(dados, ['data_agendada', 'data agendada', 'data']);
-            document.getElementById('horaAgendada').value = lerValor(dados, ['hora_agendada', 'hora agendada', 'hora']);
-            document.getElementById('linkMeet').value = lerValor(dados, ['link_meet', 'link google meet', 'meet']);
+            // HIGIENIZAÇÃO DE DATAS E HORAS APLICADA AQUI
+            document.getElementById('dataAgendada').value = higienizarData(lerValor(dados, ['data_agendada', 'data agendada', 'data']));
+            document.getElementById('horaAgendada').value = higienizarHora(lerValor(dados, ['hora_agendada', 'hora agendada', 'hora']));
+            document.getElementById('dataExame').value = higienizarData(lerValor(dados, ['data_exame', 'data exame']));
             
+            document.getElementById('linkMeet').value = lerValor(dados, ['link_meet', 'link google meet', 'meet']);
             document.getElementById('valorConsulta').value = lerValor(dados, ['valor_consulta', 'valor consulta', 'valor']);
             document.getElementById('orcamentoTotal').value = lerValor(dados, ['total_exames', 'total exames', 'exames']);
             document.getElementById('orcamentoCusto').value = lerValor(dados, ['custo_exames', 'custo exames', 'custo']);
             
-            // Leitura dos novos campos de Data de Exame e Status do Médico
-            document.getElementById('dataExame').value = lerValor(dados, ['data_exame', 'data exame']);
             const statusMedBD = lerValor(dados, ['status_medico', 'status medico']);
             if(statusMedBD) document.getElementById('statusMedico').value = statusMedBD;
-
             const statusAtual = lerValor(dados, ['status_consulta', 'status consulta', 'status']) || "Aguardando agendamento";
             document.getElementById('statusOperacao').value = statusAtual;
 
@@ -282,11 +284,7 @@
             anexosGlobais = [];
             if (anexoBruto && anexoBruto !== "Sem anexo") {
                 try { anexosGlobais = JSON.parse(anexoBruto); } 
-                catch(e) { 
-                    anexoBruto.split(" | ").forEach((url, i) => {
-                        if(url.trim() !== "") anexosGlobais.push({ url: url.trim(), nome: `Doc Legado ${i+1}`, status: 'ativo' });
-                    });
-                }
+                catch(e) { anexoBruto.split(" | ").forEach((url, i) => { if(url.trim() !== "") anexosGlobais.push({ url: url.trim(), nome: `Doc Legado ${i+1}`, status: 'ativo' }); }); }
             }
             renderizarAnexos();
 
@@ -296,7 +294,6 @@
                 if (medBD) document.getElementById('medicoResponsavel').value = medBD;
                 if (undBD) document.getElementById('unidadeAtendimento').value = undBD; 
             }, 800);
-            
             verificarRegras();
         }
 
@@ -304,7 +301,6 @@
             const divPrincipal = document.getElementById('divAnexoExistente');
             const lista = document.getElementById('listaAnexosExistentes');
             lista.innerHTML = "";
-
             if (anexosGlobais.length === 0) { divPrincipal.classList.add('hidden'); return; }
             divPrincipal.classList.remove('hidden');
 
@@ -312,31 +308,18 @@
                 let corFundo = anexo.status === 'ativo' ? 'bg-white border-indigo-200 shadow-sm' : 'bg-gray-100 border-gray-300 opacity-70';
                 let nomeRiscado = anexo.status === 'ativo' ? '' : 'line-through text-gray-500';
                 let tagStatus = anexo.status === 'ativo' ? '' : `<span class="text-[10px] uppercase font-bold text-red-500 ml-2">(${anexo.status})</span>`;
-
                 let botoes = '';
                 if (anexo.status === 'ativo') {
-                    if (usuarioLogado.perfil === 'Admin') {
-                        botoes = `<button type="button" onclick="alterarStatusAnexo(${index}, 'excluido')" class="text-xs text-red-600 font-bold hover:underline bg-red-50 px-2 py-1 rounded border border-red-200">❌ Excluir</button>`;
-                    } else {
-                        botoes = `<button type="button" onclick="alterarStatusAnexo(${index}, 'substituido')" class="text-xs text-orange-600 font-bold hover:underline bg-orange-50 px-2 py-1 rounded border border-orange-200">🔄 Substituir</button>`;
-                    }
+                    if (usuarioLogado.perfil === 'Admin') botoes = `<button type="button" onclick="alterarStatusAnexo(${index}, 'excluido')" class="text-xs text-red-600 font-bold hover:underline bg-red-50 px-2 py-1 rounded border border-red-200">❌ Excluir</button>`;
+                    else botoes = `<button type="button" onclick="alterarStatusAnexo(${index}, 'substituido')" class="text-xs text-orange-600 font-bold hover:underline bg-orange-50 px-2 py-1 rounded border border-orange-200">🔄 Substituir</button>`;
                 }
-
-                lista.innerHTML += `
-                    <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between p-3 rounded-lg border w-full ${corFundo}">
-                        <a href="${anexo.url}" target="_blank" class="text-indigo-800 font-bold text-xs truncate hover:underline ${nomeRiscado}">📄 ${anexo.nome} ${tagStatus}</a>
-                        <div class="mt-2 sm:mt-0 flex gap-3">${botoes}</div>
-                    </div>
-                `;
+                lista.innerHTML += `<div class="flex flex-col sm:flex-row items-start sm:items-center justify-between p-3 rounded-lg border w-full ${corFundo}"><a href="${anexo.url}" target="_blank" class="text-indigo-800 font-bold text-xs truncate hover:underline ${nomeRiscado}">📄 ${anexo.nome} ${tagStatus}</a><div class="mt-2 sm:mt-0 flex gap-3">${botoes}</div></div>`;
             });
         }
 
         function alterarStatusAnexo(index, novoStatus) {
-            if(novoStatus === 'excluido' && confirm("Deseja realmente EXCLUIR este documento?")) {
-                anexosGlobais[index].status = 'excluido'; renderizarAnexos();
-            } else if (novoStatus === 'substituido' && confirm("Marcar para SUBSTITUIÇÃO?\nO arquivo atual será inativado no histórico.")) {
-                anexosGlobais[index].status = 'substituido'; renderizarAnexos();
-            }
+            if(novoStatus === 'excluido' && confirm("Deseja realmente EXCLUIR este documento?")) { anexosGlobais[index].status = 'excluido'; renderizarAnexos(); } 
+            else if (novoStatus === 'substituido' && confirm("Marcar para SUBSTITUIÇÃO?\nO arquivo atual será inativado no histórico.")) { anexosGlobais[index].status = 'substituido'; renderizarAnexos(); }
         }
 
         function verificarRegras() {
@@ -353,9 +336,8 @@
         function verificarAlertaOrcamento() {
             const total = parseFloat(document.getElementById('orcamentoTotal').value) || 0;
             const custo = parseFloat(document.getElementById('orcamentoCusto').value) || 0;
-            if (total > 0 && custo > 0) {
-                document.getElementById('campoDataExame').classList.remove('hidden');
-            } else { document.getElementById('campoDataExame').classList.add('hidden'); }
+            if (total > 0 && custo > 0) document.getElementById('campoDataExame').classList.remove('hidden');
+            else document.getElementById('campoDataExame').classList.add('hidden');
         }
 
         function salvarDados() {
@@ -368,7 +350,6 @@
             if (usuarioLogado.perfil === "Medico" && !statusMed) { alert("❌ Informe se a consulta foi realizada."); return; }
             if ((dataConsulta || horaConsulta) && !linkMeet) { alert("⚠️ O Link do Google Meet é obrigatório ao definir data e hora."); return; }
 
-            // Lógicas Inteligentes de Status (360º)
             if (statusOp === "Aguardando agendamento" && dataConsulta && horaConsulta && linkMeet) statusOp = "Agendado";
             if (usuarioLogado.perfil === "Medico" && statusMed === "sim") statusOp = "Concluído";
 
@@ -378,17 +359,13 @@
                 especialidade: document.getElementById('especialidadeAgendada').value,
                 medicoResponsavel: document.getElementById('medicoResponsavel').value,
                 unidade: document.getElementById('unidadeAtendimento').value,
-                dataAgendada: dataConsulta, 
-                horaAgendada: horaConsulta, 
-                linkMeet: linkMeet,
+                dataAgendada: dataConsulta, horaAgendada: horaConsulta, linkMeet: linkMeet,
                 valorConsulta: parseFloat(document.getElementById('valorConsulta').value) || 0,
                 totalExames: parseFloat(document.getElementById('orcamentoTotal').value) || 0,
                 custoExames: parseFloat(document.getElementById('orcamentoCusto').value) || 0,
                 dataExame: document.getElementById('dataExame').value,
-                statusConsulta: statusOp,
-                statusMedico: statusMed,
-                anexosAtuais: anexosGlobais,
-                operadorResponsavel: usuarioLogado.nome
+                statusConsulta: statusOp, statusMedico: statusMed,
+                anexosAtuais: anexosGlobais, operadorResponsavel: usuarioLogado.nome
             };
             
             if (idEdicao) { payload.acao = "atualizar_registro"; payload.id_registro = idEdicao; }
@@ -397,12 +374,7 @@
             btn.innerText = "Salvando..."; btn.disabled = true;
 
             let promessas = [];
-            const tiposAnexos = [
-                { id: 'anexoAtestado', tipo: 'Atestado' }, { id: 'anexoSolExames', tipo: 'Sol. Exames' },
-                { id: 'anexoEncaminhamento', tipo: 'Encaminhamento' }, { id: 'anexoOutros', tipo: 'Receita/Outros' },
-                { id: 'anexoRecepcao', tipo: 'Recepção' }
-            ];
-
+            const tiposAnexos = [ { id: 'anexoAtestado', tipo: 'Atestado' }, { id: 'anexoSolExames', tipo: 'Sol. Exames' }, { id: 'anexoEncaminhamento', tipo: 'Encaminhamento' }, { id: 'anexoOutros', tipo: 'Receita/Outros' }, { id: 'anexoRecepcao', tipo: 'Recepção' } ];
             tiposAnexos.forEach(item => {
                 const el = document.getElementById(item.id);
                 if (el && el.files.length > 0) {
