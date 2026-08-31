@@ -3,158 +3,288 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BI Executivo - TeleAmei</title>
+    <title>Analytics BI - TeleAmei</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
-<body class="bg-slate-50 min-h-screen p-4 md:p-8">
+<body class="bg-gray-100 min-h-screen p-4 md:p-8">
     
-    <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4 mb-6 bg-purple-900 text-white p-4 rounded-lg shadow-lg">
-        <div class="font-bold text-lg text-center md:text-left">TeleAmei 📊 | BI Executivo Global</div>
-        <div class="flex flex-wrap justify-center items-center gap-2 md:gap-4">
-            <span class="text-sm w-full md:w-auto text-center md:text-left mb-2 md:mb-0">Admin: <strong id="usuarioLogadoNome">Carregando...</strong></span>
-            <button onclick="window.location.href='relatorios.html'" class="bg-emerald-600 hover:bg-emerald-700 px-3 py-2 md:py-1 rounded text-sm font-bold shadow transition w-full md:w-auto">📥 Importar/Exportar</button>
-            <button onclick="window.location.href='crm_operacoes.html'" class="bg-indigo-600 hover:bg-indigo-700 px-3 py-2 md:py-1 rounded text-sm font-bold shadow transition w-full md:w-auto">Voltar para CRM</button>
-            <button onclick="fazerLogout()" class="bg-red-500 hover:bg-red-600 px-3 py-2 md:py-1 rounded text-sm font-bold shadow transition w-full md:w-auto">Sair</button>
+    <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4 mb-6 bg-indigo-900 text-white p-4 rounded-lg shadow">
+        <div class="font-bold text-lg text-center md:text-left">TeleAmei 📊 | Painel Gerencial de BI</div>
+        <div class="flex flex-wrap justify-center items-center gap-2">
+            <span class="text-sm">Admin: <strong id="usuarioLogadoNome">Carregando...</strong></span>
+            <button onclick="window.location.href='crm_operacoes.html'" class="bg-indigo-600 hover:bg-indigo-700 px-4 py-2 rounded text-sm font-bold shadow transition">Voltar ao CRM</button>
         </div>
     </div>
 
-    <div class="max-w-7xl mx-auto bg-white p-4 md:p-6 rounded-xl shadow-md border-t-4 border-indigo-500 mb-6">
-        <h2 class="text-sm font-bold text-indigo-900 uppercase mb-4">Filtros de Análise (Cruzamento de Dados)</h2>
-        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-6 gap-4 items-end">
-            <div><label class="block text-xs font-bold text-gray-600">Data Inicial</label><input type="date" id="dataInicio" class="mt-1 w-full px-3 py-2 border rounded-md text-sm"></div>
-            <div><label class="block text-xs font-bold text-gray-600">Data Final</label><input type="date" id="dataFim" class="mt-1 w-full px-3 py-2 border rounded-md text-sm"></div>
-            <div><label class="block text-xs font-bold text-gray-600">Unidade</label><select id="filtroUnidade" class="mt-1 w-full px-3 py-2 border rounded-md text-sm"><option value="">Todas</option></select></div>
-            <div><label class="block text-xs font-bold text-gray-600">Colaborador (Op)</label><select id="filtroOperador" class="mt-1 w-full px-3 py-2 border rounded-md text-sm"><option value="">Todos</option></select></div>
-            <div><label class="block text-xs font-bold text-gray-600">Médico</label><select id="filtroMedico" class="mt-1 w-full px-3 py-2 border rounded-md text-sm"><option value="">Todos</option></select></div>
-            <div><label class="block text-xs font-bold text-gray-600">Especialidade</label><select id="filtroEspecialidade" class="mt-1 w-full px-3 py-2 border rounded-md text-sm"><option value="">Todas</option></select></div>
+    <div class="max-w-7xl mx-auto space-y-6">
+        
+        <!-- BARRA DE FILTROS -->
+        <div class="bg-white p-4 rounded-xl shadow border border-gray-200">
+            <div class="grid grid-cols-1 md:grid-cols-6 gap-4 items-end">
+                <div><label class="block text-xs font-bold text-gray-500 mb-1">Data Início</label><input type="date" id="filtroDataInicio" class="w-full p-2 border rounded text-sm"></div>
+                <div><label class="block text-xs font-bold text-gray-500 mb-1">Data Fim</label><input type="date" id="filtroDataFim" class="w-full p-2 border rounded text-sm"></div>
+                <div>
+                    <label class="block text-xs font-bold text-gray-500 mb-1">Unidade</label>
+                    <select id="filtroUnidade" class="w-full p-2 border rounded text-sm"><option value="Todas">Todas</option></select>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-gray-500 mb-1">Médico</label>
+                    <select id="filtroMedico" class="w-full p-2 border rounded text-sm"><option value="Todos">Todos</option></select>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-gray-500 mb-1">Status</label>
+                    <select id="filtroStatus" class="w-full p-2 border rounded text-sm">
+                        <option value="Todos">Todos</option>
+                        <option value="Concluído">Concluídos / Realizados</option>
+                        <option value="Agendado">Agendados</option>
+                        <option value="Exames Agendados">Exames Agendados</option>
+                    </select>
+                </div>
+                <div class="flex gap-2">
+                    <button onclick="limparFiltros()" class="w-1/3 bg-gray-200 text-gray-700 font-bold py-2 rounded shadow hover:bg-gray-300 transition text-sm">Limpar</button>
+                    <button onclick="aplicarFiltros()" class="w-2/3 bg-indigo-600 text-white font-bold py-2 rounded shadow hover:bg-indigo-700 transition text-sm">Aplicar Filtros</button>
+                </div>
+            </div>
         </div>
-        <div class="mt-4 flex flex-wrap justify-end gap-2">
-            <button onclick="limparFiltros()" class="w-full md:w-auto bg-gray-200 text-gray-700 px-4 py-2 rounded text-sm font-bold hover:bg-gray-300 transition">Limpar</button>
-            <button onclick="aplicarFiltros()" class="w-full md:w-auto bg-indigo-600 text-white px-6 py-2 rounded text-sm font-bold shadow hover:bg-indigo-700 transition">Aplicar Filtros</button>
-        </div>
-    </div>
 
-    <div class="max-w-7xl mx-auto grid grid-cols-2 md:grid-cols-5 gap-4 mb-6" id="painelResumo">
-        <div class="col-span-full text-center py-6 text-purple-600 font-bold">Buscando inteligência de dados...</div>
-    </div>
-
-    <div class="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div class="bg-white p-4 md:p-6 rounded-xl shadow-md border border-gray-200">
-            <h3 class="text-sm font-bold text-gray-500 uppercase mb-4">Volume por Status de Atendimento</h3>
-            <canvas id="graficoStatus"></canvas>
+        <!-- CARDS FINANCEIROS -->
+        <div class="grid grid-cols-1 md:grid-cols-5 gap-4">
+            <div class="bg-white p-5 rounded-xl shadow-sm border-l-4 border-blue-500 flex flex-col justify-center h-28 hover:shadow-md transition">
+                <h3 class="text-[10px] font-bold text-gray-500 uppercase tracking-wider">Consultas (Bruto)</h3>
+                <p class="text-2xl md:text-3xl font-black text-gray-800 mt-1" id="cardConsultas">R$ 0,00</p>
+            </div>
+            <div class="bg-white p-5 rounded-xl shadow-sm border-l-4 border-teal-500 flex flex-col justify-center h-28 hover:shadow-md transition">
+                <h3 class="text-[10px] font-bold text-gray-500 uppercase tracking-wider">Exames (Bruto)</h3>
+                <p class="text-2xl md:text-3xl font-black text-gray-800 mt-1" id="cardExames">R$ 0,00</p>
+            </div>
+            <div class="bg-white p-5 rounded-xl shadow-sm border-l-4 border-red-500 flex flex-col justify-center h-28 hover:shadow-md transition">
+                <h3 class="text-[10px] font-bold text-red-500 uppercase tracking-wider">Custo Exames</h3>
+                <p class="text-2xl md:text-3xl font-black text-red-600 mt-1" id="cardCustos">R$ 0,00</p>
+            </div>
+            <div class="bg-purple-50 p-5 rounded-xl shadow-sm border-l-4 border-purple-500 flex flex-col justify-center h-28 hover:shadow-md transition">
+                <h3 class="text-[10px] font-bold text-purple-600 uppercase tracking-wider">Taxa TeleAmei</h3>
+                <p class="text-2xl md:text-3xl font-black text-purple-700 mt-1" id="cardTaxa">R$ 0,00</p>
+            </div>
+            <div class="bg-green-50 p-5 rounded-xl shadow-sm border-l-4 border-green-500 flex flex-col justify-center h-28 hover:shadow-md transition">
+                <h3 class="text-[10px] font-bold text-green-700 uppercase tracking-wider">Lucro Líquido</h3>
+                <p class="text-2xl md:text-3xl font-black text-green-700 mt-1" id="cardLucro">R$ 0,00</p>
+            </div>
         </div>
-        <div class="bg-white p-4 md:p-6 rounded-xl shadow-md border border-gray-200">
-            <h3 class="text-sm font-bold text-gray-500 uppercase mb-4">Composição Financeira (R$)</h3>
-            <canvas id="graficoFinanceiro"></canvas>
+
+        <!-- GRÁFICOS -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div class="bg-white p-6 rounded-xl shadow border border-gray-200">
+                <h3 class="text-xs font-bold text-gray-500 uppercase mb-4">Volume por Status de Atendimento</h3>
+                <div class="h-64 flex items-center justify-center">
+                    <canvas id="graficoStatus"></canvas>
+                </div>
+            </div>
+            <div class="bg-white p-6 rounded-xl shadow border border-gray-200">
+                <h3 class="text-xs font-bold text-gray-500 uppercase mb-4">Composição Financeira (R$)</h3>
+                <div class="h-64 flex items-center justify-center">
+                    <canvas id="graficoFinanceiro"></canvas>
+                </div>
+            </div>
         </div>
     </div>
 
     <script>
         const URL_API = "https://script.google.com/macros/s/AKfycby-1WKshFbFVNfQliUY65_krsep0MnR3HEi6JlYEUG7mSiPVHIwPwRdIlSVnXbVFVQm/exec";
         let baseDadosGlobal = [];
-        let grafStatusInstancia = null;
-        let grafFinInstancia = null;
+        let chartStatus = null;
+        let chartFinanceiro = null;
 
-        function validarAcesso() {
+        window.onload = function() {
             const sessao = localStorage.getItem("teleamei_sessao");
-            if (!sessao) { window.location.href = "login.html"; return; }
-            const usuarioLogado = JSON.parse(sessao);
-            if (usuarioLogado.perfil !== "Admin") { alert("Acesso restrito para Administradores."); window.location.href = "crm_operacoes.html"; return; }
-            document.getElementById('usuarioLogadoNome').innerText = usuarioLogado.nome;
-            carregarDashboard();
+            if (!sessao || JSON.parse(sessao).perfil !== "Admin") {
+                alert("Acesso exclusivo para Gestores (Admin)."); 
+                window.location.href = "login.html";
+                return;
+            }
+            document.getElementById('usuarioLogadoNome').innerText = JSON.parse(sessao).nome;
+            carregarBaseBI();
+        };
+
+        function lerValor(obj, possiveisChaves) {
+            const normalizedObj = {};
+            for (let key in obj) { normalizedObj[key.toLowerCase().trim()] = obj[key]; }
+            for (let chave of possiveisChaves) {
+                if (normalizedObj[chave] !== undefined && normalizedObj[chave] !== null && normalizedObj[chave] !== "") {
+                    return normalizedObj[chave];
+                }
+            }
+            return "";
         }
 
-        function fazerLogout() { localStorage.removeItem("teleamei_sessao"); window.location.href = "login.html"; }
+        // LIMPADOR UNIVERSAL DE NÚMEROS (Evita o erro NaN)
+        function extrairNumero(valor) {
+            if (valor === null || valor === undefined || valor === "") return 0;
+            if (typeof valor === 'number') return valor;
+            
+            let txt = String(valor).trim();
+            txt = txt.replace('R$', '').trim(); // Remove o símbolo da moeda
+            
+            // Trata formatos brasileiros (1.200,50 ou 120,00)
+            if(txt.indexOf('.') > -1 && txt.indexOf(',') > -1) {
+                txt = txt.replace(/\./g, '').replace(',', '.');
+            } else if (txt.indexOf(',') > -1) {
+                txt = txt.replace(',', '.');
+            }
+            
+            let num = parseFloat(txt);
+            return isNaN(num) ? 0 : num;
+        }
 
-        function carregarDashboard() {
-            fetch(URL_API).then(res => res.json()).then(res => { 
+        function formataMoeda(valor) {
+            return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(valor);
+        }
+
+        function carregarBaseBI() {
+            fetch(URL_API).then(res => res.json()).then(res => {
                 if (res.status === "sucesso") {
-                    baseDadosGlobal = res.dados; popularDropdowns(baseDadosGlobal); aplicarFiltros();
+                    baseDadosGlobal = res.dados;
+                    preencherFiltrosDinamicos();
+                    aplicarFiltros(); 
                 }
             });
         }
 
-        function popularDropdowns(dados) {
-            const unidades = new Set(); const operadores = new Set(); const medicos = new Set(); const especialidades = new Set();
-            dados.forEach(item => {
-                if(item.Unidade) unidades.add(item.Unidade);
-                const op = item.Operador_Responsavel || item["Operador Responsavel"];
-                if(op && op !== "Sistema") operadores.add(op);
-                if(item.Medico_Responsavel) medicos.add(item.Medico_Responsavel);
-                if(item.Especialidade || item.especialidade) especialidades.add(item.Especialidade || item.especialidade);
+        function preencherFiltrosDinamicos() {
+            const selUnd = document.getElementById('filtroUnidade');
+            const selMed = document.getElementById('filtroMedico');
+            const setUnd = new Set();
+            const setMed = new Set();
+
+            baseDadosGlobal.forEach(i => {
+                const und = lerValor(i, ['unidade', 'unidade_atendimento']);
+                const med = lerValor(i, ['medico_responsavel', 'medico']);
+                if (und) setUnd.add(und);
+                if (med) setMed.add(med);
             });
-            const preencher = (id, setValores) => { const select = document.getElementById(id); Array.from(setValores).sort().forEach(val => { select.innerHTML += `<option value="${val}">${val}</option>`; }); };
-            preencher('filtroUnidade', unidades); preencher('filtroOperador', operadores); preencher('filtroMedico', medicos); preencher('filtroEspecialidade', especialidades);
+
+            Array.from(setUnd).sort().forEach(u => selUnd.innerHTML += `<option value="${u}">${u}</option>`);
+            Array.from(setMed).sort().forEach(m => selMed.innerHTML += `<option value="${m}">${m}</option>`);
         }
 
         function limparFiltros() {
-            document.querySelectorAll('input[type="date"], select').forEach(el => el.value = '');
+            document.getElementById('filtroDataInicio').value = "";
+            document.getElementById('filtroDataFim').value = "";
+            document.getElementById('filtroUnidade').value = "Todas";
+            document.getElementById('filtroMedico').value = "Todos";
+            document.getElementById('filtroStatus').value = "Todos";
             aplicarFiltros();
         }
 
         function aplicarFiltros() {
-            const dInicio = document.getElementById('dataInicio').value ? new Date(document.getElementById('dataInicio').value + "T00:00:00") : null;
-            const dFim = document.getElementById('dataFim').value ? new Date(document.getElementById('dataFim').value + "T23:59:59") : null;
-            const und = document.getElementById('filtroUnidade').value.toLowerCase();
-            const op = document.getElementById('filtroOperador').value.toLowerCase();
-            const med = document.getElementById('filtroMedico').value.toLowerCase();
-            const esp = document.getElementById('filtroEspecialidade').value.toLowerCase();
+            const dtIni = document.getElementById('filtroDataInicio').value;
+            const dtFim = document.getElementById('filtroDataFim').value;
+            const und = document.getElementById('filtroUnidade').value;
+            const med = document.getElementById('filtroMedico').value;
+            const sts = document.getElementById('filtroStatus').value;
 
-            const filtrados = baseDadosGlobal.filter(item => {
-                let passaData = true;
-                if (dInicio || dFim) {
-                    const dataItem = new Date(item.Data_Agendada || item.Data_Registro);
-                    if (dInicio && dataItem < dInicio) passaData = false;
-                    if (dFim && dataItem > dFim) passaData = false;
-                }
-                return passaData && 
-                       (und === "" || (item.Unidade || "").toLowerCase() === und) &&
-                       (op === "" || (item.Operador_Responsavel || item["Operador Responsavel"] || "").toLowerCase() === op) &&
-                       (med === "" || (item.Medico_Responsavel || "").toLowerCase() === med) &&
-                       (esp === "" || (item.Especialidade || item.especialidade || "").toLowerCase() === esp);
+            let filtrados = baseDadosGlobal.filter(item => {
+                const dataRegRaw = lerValor(item, ['data_registro', 'data registro', 'carimbo de data/hora']);
+                if (dtIni && dataRegRaw) { if (new Date(dataRegRaw) < new Date(dtIni + 'T00:00:00')) return false; }
+                if (dtFim && dataRegRaw) { if (new Date(dataRegRaw) > new Date(dtFim + 'T23:59:59')) return false; }
+                
+                if (und !== "Todas" && lerValor(item, ['unidade', 'unidade_atendimento']) !== und) return false;
+                if (med !== "Todos" && lerValor(item, ['medico_responsavel', 'medico']) !== med) return false;
+                
+                const itemStatus = String(lerValor(item, ['status_consulta', 'status']) || "Pendente").toLowerCase();
+                const filtroSts = sts.toLowerCase();
+                if (sts !== "Todos" && !itemStatus.includes(filtroSts)) return false;
+
+                return true;
             });
-            renderizarBI(filtrados);
+
+            calcularDashboard(filtrados);
         }
 
-        function renderizarBI(dados) {
-            let fConsultas = 0, fExames = 0, cExames = 0, lucro = 0, txTeleAmei = 0;
-            let statusCount = {};
+        function calcularDashboard(dadosFiltrados) {
+            let totalConsultas = 0, totalExames = 0, totalCusto = 0, totalTaxa = 0, totalLucro = 0;
+            const contagemStatus = {};
 
-            dados.forEach(item => {
-                fConsultas += parseFloat(item.Valor_Consulta || 0);
-                fExames += parseFloat(item.Total_Exames || 0);
-                cExames += parseFloat(item.Custo_Exames || 0);
-                lucro += parseFloat(item.Lucro_Clinica || 0);
-                txTeleAmei += parseFloat(item.Taxa_TeleAmei_Total || item["Taxa TeleAmei Total"] || 0);
-                const status = item.Status_Consulta || "Pendente";
-                statusCount[status] = (statusCount[status] || 0) + 1;
+            dadosFiltrados.forEach(item => {
+                // Utilizando a nova função blindada extrairNumero
+                const vCons = extrairNumero(lerValor(item, ['valor_consulta', 'valor consulta', 'valor']));
+                const vEx = extrairNumero(lerValor(item, ['total_exames', 'total exames', 'exames']));
+                const cEx = extrairNumero(lerValor(item, ['custo_exames', 'custo exames', 'custo']));
+                
+                // Cálculo das Taxas e Lucro
+                const calcTaxa = (vCons * 0.25) + (vEx * 0.10);
+                const calcLucro = (vCons + vEx) - cEx - calcTaxa;
+
+                totalConsultas += vCons;
+                totalExames += vEx;
+                totalCusto += cEx;
+                totalTaxa += calcTaxa;
+                totalLucro += calcLucro;
+
+                const status = String(lerValor(item, ['status_consulta', 'status consulta', 'status']) || "Pendente").trim();
+                contagemStatus[status] = (contagemStatus[status] || 0) + 1;
             });
 
-            const f = (val) => "R$ " + val.toLocaleString('pt-BR', {minimumFractionDigits: 2});
+            document.getElementById('cardConsultas').innerText = formataMoeda(totalConsultas);
+            document.getElementById('cardExames').innerText = formataMoeda(totalExames);
+            document.getElementById('cardCustos').innerText = formataMoeda(totalCusto);
+            document.getElementById('cardTaxa').innerText = formataMoeda(totalTaxa);
+            document.getElementById('cardLucro').innerText = formataMoeda(totalLucro);
 
-            document.getElementById('painelResumo').innerHTML = `
-                <div class="bg-white p-4 rounded-xl shadow-sm border-l-4 border-blue-500"><p class="text-[10px] font-bold text-gray-500 uppercase">Consultas (Bruto)</p><p class="text-lg md:text-xl font-black text-gray-800 mt-1">${f(fConsultas)}</p></div>
-                <div class="bg-white p-4 rounded-xl shadow-sm border-l-4 border-teal-500"><p class="text-[10px] font-bold text-gray-500 uppercase">Exames (Bruto)</p><p class="text-lg md:text-xl font-black text-gray-800 mt-1">${f(fExames)}</p></div>
-                <div class="bg-white p-4 rounded-xl shadow-sm border-l-4 border-red-500"><p class="text-[10px] font-bold text-red-500 uppercase">Custo Exames</p><p class="text-lg md:text-xl font-black text-red-600 mt-1">${f(cExames)}</p></div>
-                <div class="bg-white p-4 rounded-xl shadow-sm border-l-4 border-purple-500 bg-purple-50"><p class="text-[10px] font-bold text-purple-700 uppercase">Taxa TeleAmei</p><p class="text-lg md:text-xl font-black text-purple-700 mt-1">${f(txTeleAmei)}</p></div>
-                <div class="bg-white p-4 rounded-xl shadow-sm border-l-4 border-green-500 bg-green-50"><p class="text-[10px] font-bold text-green-700 uppercase">Lucro Líquido</p><p class="text-lg md:text-xl font-black text-green-700 mt-1">${f(lucro)}</p></div>
-            `;
+            renderizarGraficoStatus(contagemStatus);
+            renderizarGraficoFinanceiro(totalConsultas, totalExames, totalCusto, totalTaxa, totalLucro);
+        }
 
-            if (grafStatusInstancia) grafStatusInstancia.destroy();
-            if (grafFinInstancia) grafFinInstancia.destroy();
+        function renderizarGraficoStatus(dados) {
+            const ctx = document.getElementById('graficoStatus').getContext('2d');
+            if(chartStatus) chartStatus.destroy();
+            
+            const labels = Object.keys(dados);
+            const valores = Object.values(dados);
+            const cores = labels.map(l => {
+                const s = l.toLowerCase();
+                if(s.includes('agendado')) return '#3b82f6';
+                if(s.includes('exame')) return '#f59e0b';
+                if(s.includes('concluí') || s === 'sim') return '#22c55e';
+                return '#94a3b8';
+            });
 
-            grafStatusInstancia = new Chart(document.getElementById('graficoStatus'), {
+            chartStatus = new Chart(ctx, {
                 type: 'doughnut',
-                data: { labels: Object.keys(statusCount), datasets: [{ data: Object.values(statusCount), backgroundColor: ['#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6', '#14B8A6'] }] }
-            });
-
-            grafFinInstancia = new Chart(document.getElementById('graficoFinanceiro'), {
-                type: 'bar',
-                data: { labels: ['Consultas', 'Exames', 'Custos', 'Lucro', 'Taxa App'], datasets: [{ label: 'R$', data: [fConsultas, fExames, cExames, lucro, txTeleAmei], backgroundColor: ['#3B82F6', '#14B8A6', '#EF4444', '#10B981', '#8B5CF6'] }] }
+                data: {
+                    labels: labels,
+                    datasets: [{ data: valores, backgroundColor: cores, borderWidth: 2 }]
+                },
+                options: {
+                    responsive: true, maintainAspectRatio: false,
+                    plugins: { legend: { position: 'right', labels: { boxWidth: 12, font: { size: 10 } } } },
+                    cutout: '65%'
+                }
             });
         }
-        window.onload = validarAcesso;
+
+        function renderizarGraficoFinanceiro(cons, ex, cust, taxa, lucro) {
+            const ctx = document.getElementById('graficoFinanceiro').getContext('2d');
+            if(chartFinanceiro) chartFinanceiro.destroy();
+
+            chartFinanceiro = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['Consultas Brutas', 'Exames Brutos', 'Custo (Despesa)', 'Taxa TeleAmei', 'Lucro Líquido'],
+                    datasets: [{
+                        label: 'R$',
+                        data: [cons, ex, cust, taxa, lucro],
+                        backgroundColor: ['#3b82f6', '#14b8a6', '#ef4444', '#a855f7', '#22c55e'],
+                        borderRadius: 4
+                    }]
+                },
+                options: {
+                    responsive: true, maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: { y: { beginAtZero: true, grid: { borderDash: [2, 4], color: '#e2e8f0' } }, x: { grid: { display: false } } }
+                }
+            });
+        }
     </script>
 </body>
 </html>
