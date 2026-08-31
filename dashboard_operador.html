@@ -10,7 +10,7 @@
 <body class="bg-gray-100 min-h-screen p-4 md:p-8">
     
     <div class="max-w-6xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4 mb-6 bg-indigo-900 text-white p-4 rounded-lg shadow">
-        <div class="font-bold text-lg text-center md:text-left">TeleAmei 🎯 | Meu Desempenho Individual</div>
+        <div class="font-bold text-lg text-center md:text-left">TeleAmei 🎯 | Meu Desempenho</div>
         <div class="flex flex-wrap justify-center items-center gap-2">
             <span class="text-sm">Operador: <strong id="usuarioLogadoNome">Carregando...</strong></span>
             <button onclick="window.location.href='crm_operacoes.html'" class="bg-indigo-600 hover:bg-indigo-700 px-4 py-2 rounded text-sm font-bold shadow transition">Voltar ao CRM</button>
@@ -18,208 +18,65 @@
     </div>
 
     <div class="max-w-6xl mx-auto space-y-6">
-        
-        <!-- CARDS DE DESEMPENHO INDIVIDUAL -->
         <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <div class="bg-white p-5 rounded-xl shadow-sm border-l-4 border-blue-500 flex flex-col justify-center h-28">
-                <h3 class="text-[10px] font-bold text-gray-500 uppercase tracking-wider">Meus Atendimentos Totais</h3>
-                <p class="text-3xl font-black text-gray-800 mt-1" id="cardTotal">0</p>
-            </div>
-            <div class="bg-white p-5 rounded-xl shadow-sm border-l-4 border-green-500 flex flex-col justify-center h-28">
-                <h3 class="text-[10px] font-bold text-green-600 uppercase tracking-wider">Atendimentos Concluídos</h3>
-                <p class="text-3xl font-black text-green-600 mt-1" id="cardConcluidos">0</p>
-            </div>
-            <div class="bg-white p-5 rounded-xl shadow-sm border-l-4 border-yellow-500 flex flex-col justify-center h-28">
-                <h3 class="text-[10px] font-bold text-yellow-600 uppercase tracking-wider">Em Andamento (Fila)</h3>
-                <p class="text-3xl font-black text-yellow-600 mt-1" id="cardFila">0</p>
-            </div>
-            <div class="bg-indigo-50 p-5 rounded-xl shadow-sm border-l-4 border-indigo-500 flex flex-col justify-center h-28">
-                <h3 class="text-[10px] font-bold text-indigo-700 uppercase tracking-wider">Faturamento Gerado (Bruto)</h3>
-                <p class="text-2xl md:text-3xl font-black text-indigo-800 mt-1" id="cardFaturamento">R$ 0,00</p>
-            </div>
+            <div class="bg-white p-5 rounded-xl shadow-sm border-l-4 border-blue-500 h-28"><h3 class="text-[10px] font-bold text-gray-500 uppercase">Meus Atendimentos</h3><p class="text-3xl font-black mt-1" id="cardTotal">0</p></div>
+            <div class="bg-white p-5 rounded-xl shadow-sm border-l-4 border-green-500 h-28"><h3 class="text-[10px] font-bold text-green-600 uppercase">Concluídos</h3><p class="text-3xl font-black text-green-600 mt-1" id="cardConcluidos">0</p></div>
+            <div class="bg-white p-5 rounded-xl shadow-sm border-l-4 border-yellow-500 h-28"><h3 class="text-[10px] font-bold text-yellow-600 uppercase">Em Fila</h3><p class="text-3xl font-black text-yellow-600 mt-1" id="cardFila">0</p></div>
+            <div class="bg-indigo-50 p-5 rounded-xl shadow-sm border-l-4 border-indigo-500 h-28"><h3 class="text-[10px] font-bold text-indigo-700 uppercase">Faturamento (Bruto)</h3><p class="text-2xl font-black text-indigo-800 mt-1" id="cardFaturamento">R$ 0,00</p></div>
         </div>
 
-        <!-- GRÁFICOS DO OPERADOR -->
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div class="bg-white p-6 rounded-xl shadow border border-gray-200">
-                <h3 class="text-xs font-bold text-gray-500 uppercase mb-4">Minha Conversão de Status</h3>
-                <div class="h-64 flex items-center justify-center">
-                    <canvas id="graficoStatus"></canvas>
-                </div>
-            </div>
-            <div class="bg-white p-6 rounded-xl shadow border border-gray-200">
-                <h3 class="text-xs font-bold text-gray-500 uppercase mb-4">Histórico de Faturamento (Últimos 7 dias)</h3>
-                <div class="h-64 flex items-center justify-center">
-                    <canvas id="graficoEvolucao"></canvas>
-                </div>
-            </div>
+            <div class="bg-white p-6 rounded-xl shadow border border-gray-200"><h3 class="text-xs font-bold text-gray-500 mb-4">Conversão</h3><div class="h-64 flex"><canvas id="graficoStatus"></canvas></div></div>
+            <div class="bg-white p-6 rounded-xl shadow border border-gray-200"><h3 class="text-xs font-bold text-gray-500 mb-4">Faturamento (Últimos 7 dias)</h3><div class="h-64 flex"><canvas id="graficoEvolucao"></canvas></div></div>
         </div>
     </div>
 
     <script>
         const URL_API = "https://script.google.com/macros/s/AKfycby-1WKshFbFVNfQliUY65_krsep0MnR3HEi6JlYEUG7mSiPVHIwPwRdIlSVnXbVFVQm/exec";
-        let usuarioLogado = null;
-        let chartStatus = null;
-        let chartEvolucao = null;
+        let usuarioLogado = null; let chartStatus = null; let chartEvolucao = null;
 
         window.onload = function() {
-            const sessao = localStorage.getItem("teleamei_sessao");
-            if (!sessao) { window.location.href = "login.html"; return; }
-            usuarioLogado = JSON.parse(sessao);
-            
-            document.getElementById('usuarioLogadoNome').innerText = usuarioLogado.nome;
+            const sessaoStr = localStorage.getItem("teleamei_sessao");
+            if (!sessaoStr) { window.location.href = "login.html"; return; }
+            const sessao = JSON.parse(sessaoStr);
+            if (!sessao.timestamp || (Date.now() - sessao.timestamp > 86400000)) { localStorage.removeItem("teleamei_sessao"); alert("Sessão expirada (24h)."); window.location.href = "login.html"; return; }
+            usuarioLogado = sessao; document.getElementById('usuarioLogadoNome').innerText = sessao.nome;
             carregarMeuDesempenho();
         };
 
-        function lerValor(obj, possiveisChaves) {
-            const normalizedObj = {};
-            for (let key in obj) { normalizedObj[key.toLowerCase().trim()] = obj[key]; }
-            for (let chave of possiveisChaves) {
-                if (normalizedObj[chave] !== undefined && normalizedObj[chave] !== null && normalizedObj[chave] !== "") {
-                    return normalizedObj[chave];
-                }
-            }
-            return "";
-        }
-
-        // O MESMO MOTOR BLINDADO DE MATEMÁTICA DO ADMIN (Visão 360)
-        function extrairNumero(valor) {
-            if (valor === null || valor === undefined || valor === "") return 0;
-            if (typeof valor === 'number') return valor;
-            
-            let txt = String(valor).trim();
-            txt = txt.replace('R$', '').trim(); 
-            
-            if(txt.indexOf('.') > -1 && txt.indexOf(',') > -1) {
-                txt = txt.replace(/\./g, '').replace(',', '.');
-            } else if (txt.indexOf(',') > -1) {
-                txt = txt.replace(',', '.');
-            }
-            
-            let num = parseFloat(txt);
-            return isNaN(num) ? 0 : num;
-        }
-
-        function formataMoeda(valor) {
-            return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(valor);
-        }
+        function lerValor(obj, chaves) { const norm = {}; for (let k in obj) norm[k.toLowerCase().trim()] = obj[k]; for (let c of chaves) if (norm[c] !== undefined && norm[c] !== null && norm[c] !== "") return norm[c]; return ""; }
+        function extrairNumero(v) { if (!v) return 0; if (typeof v === 'number') return v; let t = String(v).replace('R$', '').trim(); if(t.indexOf('.') > -1 && t.indexOf(',') > -1) t = t.replace(/\./g, '').replace(',', '.'); else if (t.indexOf(',') > -1) t = t.replace(',', '.'); return parseFloat(t) || 0; }
+        function formataMoeda(v) { return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(v); }
 
         function carregarMeuDesempenho() {
-            fetch(URL_API).then(res => res.json()).then(res => {
-                if (res.status === "sucesso") {
-                    // Filtra apenas as demandas do usuário logado
-                    const minhasDemandas = res.dados.filter(item => {
-                        const op = String(lerValor(item, ['operador_responsavel', 'operador'])).trim();
-                        return op === usuarioLogado.nome.trim();
-                    });
-                    calcularMetricas(minhasDemandas);
-                }
-            });
+            fetch(URL_API).then(res => res.json()).then(res => { if (res.status === "sucesso") { calcularMetricas(res.dados.filter(i => String(lerValor(i, ['operador_responsavel'])).trim() === usuarioLogado.nome.trim())); } });
         }
 
         function calcularMetricas(dados) {
-            let total = dados.length;
-            let concluidos = 0;
-            let fila = 0;
-            let faturamentoTotal = 0;
-            const contagemStatus = {};
-            const faturamentoPorDia = {};
+            let concluidos = 0; let fila = 0; let faturamento = 0; const cSt = {}; const fDia = {};
+            for(let i=6; i>=0; i--) { let d = new Date(); d.setDate(d.getDate() - i); fDia[d.toLocaleDateString('pt-BR')] = 0; }
 
-            // Pegar datas dos últimos 7 dias para o gráfico
-            const hoje = new Date();
-            for(let i=6; i>=0; i--) {
-                let d = new Date(hoje);
-                d.setDate(d.getDate() - i);
-                faturamentoPorDia[d.toLocaleDateString('pt-BR')] = 0;
-            }
-
-            dados.forEach(item => {
-                const status = String(lerValor(item, ['status_consulta', 'status consulta', 'status']) || "Pendente").trim();
-                const statusNormal = status.toLowerCase();
-                
-                if (statusNormal.includes('concluíd') || statusNormal === 'sim') concluidos++;
-                else fila++;
-
-                contagemStatus[status] = (contagemStatus[status] || 0) + 1;
-
-                // Cálculo Financeiro Seguro
-                const vCons = extrairNumero(lerValor(item, ['valor_consulta', 'valor consulta', 'valor']));
-                const vEx = extrairNumero(lerValor(item, ['total_exames', 'total exames', 'exames']));
-                const faturamentoLinha = vCons + vEx;
-                
-                faturamentoTotal += faturamentoLinha;
-
-                // Evolução diária
-                const dtRegRaw = lerValor(item, ['data_registro', 'data registro', 'carimbo de data/hora']);
-                if(dtRegRaw) {
-                    const dataObj = new Date(dtRegRaw);
-                    if(!isNaN(dataObj)) {
-                        const dataStr = dataObj.toLocaleDateString('pt-BR');
-                        if (faturamentoPorDia[dataStr] !== undefined) {
-                            faturamentoPorDia[dataStr] += faturamentoLinha;
-                        }
-                    }
-                }
+            dados.forEach(i => {
+                const st = String(lerValor(i, ['status_consulta']) || "Pendente").trim();
+                if (st.toLowerCase().includes('concluíd') || st.toLowerCase() === 'sim') concluidos++; else fila++;
+                cSt[st] = (cSt[st] || 0) + 1;
+                const vl = extrairNumero(lerValor(i, ['valor_consulta'])) + extrairNumero(lerValor(i, ['total_exames']));
+                faturamento += vl;
+                const dt = lerValor(i, ['data_registro']);
+                if(dt && !isNaN(new Date(dt))) { const ds = new Date(dt).toLocaleDateString('pt-BR'); if (fDia[ds] !== undefined) fDia[ds] += vl; }
             });
 
-            document.getElementById('cardTotal').innerText = total;
-            document.getElementById('cardConcluidos').innerText = concluidos;
-            document.getElementById('cardFila').innerText = fila;
-            document.getElementById('cardFaturamento').innerText = formataMoeda(faturamentoTotal);
-
-            renderizarGraficoStatus(contagemStatus);
-            renderizarGraficoEvolucao(faturamentoPorDia);
+            document.getElementById('cardTotal').innerText = dados.length; document.getElementById('cardConcluidos').innerText = concluidos; document.getElementById('cardFila').innerText = fila; document.getElementById('cardFaturamento').innerText = formataMoeda(faturamento);
+            renderizarGraficoStatus(cSt); renderizarGraficoEvolucao(fDia);
         }
 
-        function renderizarGraficoStatus(dados) {
-            const ctx = document.getElementById('graficoStatus').getContext('2d');
-            if(chartStatus) chartStatus.destroy();
-            
-            const labels = Object.keys(dados);
-            const valores = Object.values(dados);
-            const cores = labels.map(l => {
-                const s = l.toLowerCase();
-                if(s.includes('agendado')) return '#3b82f6';
-                if(s.includes('exame')) return '#f59e0b';
-                if(s.includes('concluí') || s === 'sim') return '#22c55e';
-                return '#94a3b8';
-            });
-
-            chartStatus = new Chart(ctx, {
-                type: 'pie',
-                data: {
-                    labels: labels,
-                    datasets: [{ data: valores, backgroundColor: cores, borderWidth: 1 }]
-                },
-                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } } }
-            });
+        function renderizarGraficoStatus(d) {
+            const ctx = document.getElementById('graficoStatus').getContext('2d'); if(chartStatus) chartStatus.destroy();
+            chartStatus = new Chart(ctx, { type: 'pie', data: { labels: Object.keys(d), datasets: [{ data: Object.values(d), backgroundColor: ['#3b82f6', '#f59e0b', '#22c55e', '#94a3b8'] }] }, options: { maintainAspectRatio: false } });
         }
-
-        function renderizarGraficoEvolucao(dadosPorDia) {
-            const ctx = document.getElementById('graficoEvolucao').getContext('2d');
-            if(chartEvolucao) chartEvolucao.destroy();
-
-            chartEvolucao = new Chart(ctx, {
-                type: 'line',
-                data: {
-                    labels: Object.keys(dadosPorDia),
-                    datasets: [{
-                        label: 'Faturamento Bruto (R$)',
-                        data: Object.values(dadosPorDia),
-                        borderColor: '#4f46e5',
-                        backgroundColor: 'rgba(79, 70, 229, 0.1)',
-                        borderWidth: 2,
-                        fill: true,
-                        tension: 0.3,
-                        pointBackgroundColor: '#4f46e5'
-                    }]
-                },
-                options: {
-                    responsive: true, maintainAspectRatio: false,
-                    plugins: { legend: { display: false } },
-                    scales: { y: { beginAtZero: true, grid: { borderDash: [2, 4] } }, x: { grid: { display: false } } }
-                }
-            });
+        function renderizarGraficoEvolucao(d) {
+            const ctx = document.getElementById('graficoEvolucao').getContext('2d'); if(chartEvolucao) chartEvolucao.destroy();
+            chartEvolucao = new Chart(ctx, { type: 'line', data: { labels: Object.keys(d), datasets: [{ data: Object.values(d), borderColor: '#4f46e5', backgroundColor: 'rgba(79, 70, 229, 0.1)', fill: true, tension: 0.3 }] }, options: { maintainAspectRatio: false, plugins:{legend:{display:false}} } });
         }
     </script>
 </body>

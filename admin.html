@@ -20,7 +20,6 @@
     </div>
 
     <div class="max-w-6xl mx-auto bg-white p-4 md:p-8 rounded-xl shadow-lg border-t-4 border-blue-800">
-        
         <div class="flex flex-col md:flex-row justify-between items-center gap-4 mb-6">
             <h1 class="text-xl md:text-2xl font-bold text-blue-800 text-center md:text-left w-full md:w-auto">Prontuário Eletrônico</h1>
             <div id="botoesOperacao" class="hidden flex flex-wrap justify-center gap-2 w-full md:w-auto">
@@ -28,7 +27,7 @@
                 <button type="button" onclick="dispararWhatsApp('orcamento')" class="w-full md:w-auto bg-teal-600 hover:bg-teal-700 text-white px-4 py-3 md:py-2 rounded text-sm font-bold shadow">📄 Enviar Orçamento</button>
             </div>
             <div id="botoesMedico" class="hidden flex space-x-2">
-                <button type="button" onclick="dispararWhatsApp('documentos')" class="w-full md:w-auto bg-blue-600 hover:bg-blue-700 text-white px-4 py-3 md:py-2 rounded text-sm font-bold shadow transition flex items-center w-full md:w-auto justify-center">🩺 Enviar Documentos</button>
+                <button type="button" onclick="dispararWhatsApp('documentos')" class="w-full md:w-auto bg-blue-600 hover:bg-blue-700 text-white px-4 py-3 md:py-2 rounded text-sm font-bold shadow transition flex items-center justify-center">🩺 Enviar Documentos</button>
             </div>
         </div>
 
@@ -48,18 +47,14 @@
                     <div><label class="block text-sm font-bold text-indigo-900">Hora da Consulta</label><input type="time" id="horaAgendada" class="mt-1 block w-full px-4 py-3 md:py-2 border border-indigo-300 rounded-md"></div>
                     <div>
                         <label class="block text-sm font-bold text-indigo-900">Médico Responsável</label>
-                        <select id="medicoResponsavel" class="mt-1 block w-full px-4 py-3 md:py-2 border border-indigo-300 rounded-md bg-white">
-                            <option value="">Carregando médicos...</option>
-                        </select>
+                        <select id="medicoResponsavel" class="mt-1 block w-full px-4 py-3 md:py-2 border border-indigo-300 rounded-md bg-white"><option value="">Carregando...</option></select>
                     </div>
-                    <div><label class="block text-sm font-bold text-indigo-900">Link Google Meet</label><input type="url" id="linkMeet" placeholder="https://meet.google.com/..." class="mt-1 block w-full px-4 py-3 md:py-2 border border-indigo-300 rounded-md"></div>
+                    <div><label class="block text-sm font-bold text-indigo-900">Link Google Meet</label><input type="url" id="linkMeet" class="mt-1 block w-full px-4 py-3 md:py-2 border border-indigo-300 rounded-md"></div>
                 </div>
 
                 <div class="col-span-1 md:col-span-2 lg:col-span-4">
                     <label class="block text-sm font-medium text-gray-700">Unidade de Atendimento</label>
-                    <select id="unidadeAtendimento" class="mt-1 block w-full px-4 py-3 md:py-2 border border-gray-300 rounded-md md:w-1/3 bg-white">
-                        <option value="">Carregando unidades...</option>
-                    </select>
+                    <select id="unidadeAtendimento" class="mt-1 block w-full px-4 py-3 md:py-2 border border-gray-300 rounded-md md:w-1/3 bg-white"><option value="">Carregando...</option></select>
                 </div>
             </div>
 
@@ -70,7 +65,7 @@
                     <select id="statusOperacao" onchange="verificarRegras()" class="block w-full px-4 py-3 md:py-2 border border-blue-300 rounded-md bg-white font-bold">
                         <option value="Aguardando agendamento">Aguardando agendamento</option>
                         <option value="Agendado">Agendado</option>
-                        <option value="Aguardando orçamento dos exames">Aguardando orçamento dos exames</option>
+                        <option value="Aguardando orçamento dos exames">Aguardando orçamentos</option>
                         <option value="Exames Agendados">Exames Agendados</option>
                         <option value="Concluído">Concluído</option>
                     </select>
@@ -79,43 +74,37 @@
             </div>
 
             <div id="blocoOrcamento" class="hidden bg-yellow-50 p-4 md:p-6 rounded-lg border-2 border-yellow-400 mt-6 shadow-sm">
-                <h3 class="text-lg font-bold text-yellow-900 mb-4">📄 Orçamento e Agendamento de Exames</h3>
+                <h3 class="text-lg font-bold text-yellow-900 mb-4">📄 Orçamento e Exames</h3>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
-                    <div><label class="block text-sm font-bold text-gray-800">Valor TOTAL (R$)</label><input type="number" id="orcamentoTotal" oninput="verificarAlertaOrcamento()" class="mt-1 block w-full px-4 py-3 border border-yellow-400 bg-white rounded-md text-lg font-bold"></div>
-                    <div><label class="block text-sm font-bold text-gray-800">CUSTO (R$)</label><input type="number" id="orcamentoCusto" oninput="verificarAlertaOrcamento()" class="mt-1 block w-full px-4 py-3 border border-yellow-400 bg-white rounded-md text-lg font-bold"></div>
+                    <div><label class="block text-sm font-bold text-gray-800">Valor TOTAL (R$)</label><input type="number" id="orcamentoTotal" oninput="verificarAlertaOrcamento()" class="mt-1 block w-full px-4 py-3 border border-yellow-400 bg-white rounded-md font-bold"></div>
+                    <div><label class="block text-sm font-bold text-gray-800">CUSTO (R$)</label><input type="number" id="orcamentoCusto" oninput="verificarAlertaOrcamento()" class="mt-1 block w-full px-4 py-3 border border-yellow-400 bg-white rounded-md font-bold"></div>
                 </div>
                 <div id="campoDataExame" class="hidden mt-6 bg-white p-4 border border-green-300 rounded-lg">
                     <label class="block text-sm font-bold text-green-900">Data Agendada para os Exames</label>
-                    <input type="date" id="dataExame" class="mt-2 block w-full md:w-1/3 px-4 py-3 md:py-2 border border-green-400 rounded-md shadow-sm">
+                    <input type="date" id="dataExame" class="mt-2 block w-full md:w-1/3 px-4 py-3 md:py-2 border border-green-400 rounded-md">
                 </div>
             </div>
 
             <div id="blocoMedico" class="hidden border-t-2 border-blue-200 pt-6">
                 <div class="bg-blue-50 p-4 md:p-6 rounded-xl border border-blue-300">
                     <h3 class="text-xl font-bold text-blue-900 mb-4">🩺 Prontuário Médico</h3>
-                    
                     <label class="block text-sm font-bold text-blue-900 mb-2">A consulta foi realizada? <span class="text-red-500">*</span></label>
                     <select id="statusMedico" onchange="verificarRegras()" class="block w-full md:w-1/3 px-4 py-3 md:py-2 border border-blue-400 rounded-md bg-white mb-6">
-                        <option value="">Selecione obrigatoriamente...</option>
-                        <option value="sim">Sim, consulta realizada</option>
-                        <option value="nao">Não realizada (Falta/Erro)</option>
+                        <option value="">Selecione obrigatoriamente...</option><option value="sim">Sim, consulta realizada</option><option value="nao">Não realizada</option>
                     </select>
-
                     <div id="blocoAnexosMedico" class="hidden bg-white p-4 md:p-5 rounded-lg border border-blue-200 shadow-sm">
-                        <label class="block text-sm font-bold text-indigo-900 mb-4 border-b pb-2">Houve emissão de documentos? Anexe abaixo:</label>
+                        <label class="block text-sm font-bold text-indigo-900 mb-4 border-b pb-2">Emissão de documentos:</label>
                         <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
-                            <div class="bg-slate-50 p-3 rounded border"><label class="block text-xs font-bold text-slate-700">Atestado</label><input type="file" id="anexoAtestado" class="mt-2 w-full text-xs cursor-pointer"></div>
-                            <div class="bg-yellow-50 p-3 rounded border border-yellow-200"><label class="block text-xs font-bold text-yellow-800">Sol. de Exames</label><input type="file" id="anexoSolExames" class="mt-2 w-full text-xs cursor-pointer"></div>
-                            <div class="bg-slate-50 p-3 rounded border"><label class="block text-xs font-bold text-slate-700">Encaminhamento</label><input type="file" id="anexoEncaminhamento" class="mt-2 w-full text-xs cursor-pointer"></div>
-                            <div class="bg-slate-50 p-3 rounded border"><label class="block text-xs font-bold text-slate-700">Receita / Outros</label><input type="file" id="anexoOutros" class="mt-2 w-full text-xs cursor-pointer"></div>
+                            <div class="bg-slate-50 p-3 rounded border"><label class="block text-xs font-bold">Atestado</label><input type="file" id="anexoAtestado" class="mt-2 w-full text-xs cursor-pointer"></div>
+                            <div class="bg-yellow-50 p-3 rounded border border-yellow-200"><label class="block text-xs font-bold text-yellow-800">Sol. Exames</label><input type="file" id="anexoSolExames" class="mt-2 w-full text-xs cursor-pointer"></div>
+                            <div class="bg-slate-50 p-3 rounded border"><label class="block text-xs font-bold">Encaminhamento</label><input type="file" id="anexoEncaminhamento" class="mt-2 w-full text-xs cursor-pointer"></div>
+                            <div class="bg-slate-50 p-3 rounded border"><label class="block text-xs font-bold">Receita/Outros</label><input type="file" id="anexoOutros" class="mt-2 w-full text-xs cursor-pointer"></div>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <button type="button" id="btnSalvar" onclick="salvarDados()" class="w-full bg-blue-800 text-white py-4 rounded-xl font-bold hover:bg-blue-900 transition duration-300 mt-8 shadow-lg text-lg uppercase">
-                Gravar Prontuário
-            </button>
+            <button type="button" id="btnSalvar" onclick="salvarDados()" class="w-full bg-blue-800 text-white py-4 rounded-xl font-bold hover:bg-blue-900 transition shadow-lg text-lg uppercase mt-8">Gravar Prontuário</button>
         </form>
     </div>
 
@@ -123,92 +112,54 @@
         const URL_API = "https://script.google.com/macros/s/AKfycby-1WKshFbFVNfQliUY65_krsep0MnR3HEi6JlYEUG7mSiPVHIwPwRdIlSVnXbVFVQm/exec";
         let usuarioLogado = null; let idEdicao = null; let anexosGlobais = [];
 
-        // HIGIENIZADOR 360º PARA DATAS E HORAS (Cura bugs legados)
         function higienizarData(val) {
-            if (!val) return "";
-            let s = String(val).trim();
-            if (s.includes("1899") || s.includes("1900")) return ""; 
-            if (s.includes("T")) {
-                let d = new Date(s);
-                if (!isNaN(d)) return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
-            }
-            if (s.includes("/")) {
-                let p = s.split('/');
-                if (p.length === 3) return `${p[2]}-${p[1]}-${p[0]}`;
-            }
-            return s.substring(0, 10);
+            if (!val) return ""; let s = String(val).trim(); if (s.includes("1899") || s.includes("1900")) return ""; 
+            if (s.includes("T")) { let d = new Date(s); if (!isNaN(d)) return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); }
+            if (s.includes("/")) { let p = s.split('/'); if (p.length === 3) return `${p[2]}-${p[1]}-${p[0]}`; } return s.substring(0, 10);
         }
-
         function higienizarHora(val) {
-            if (!val) return "";
-            let s = String(val).trim();
-            if (/^\d{2}:\d{2}/.test(s)) return s.substring(0, 5);
-            if (s.includes("T")) {
-                let d = new Date(s);
-                if (!isNaN(d)) return String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0');
-            }
-            return s.substring(0, 5);
+            if (!val) return ""; let s = String(val).trim(); if (/^\d{2}:\d{2}/.test(s)) return s.substring(0, 5);
+            if (s.includes("T")) { let d = new Date(s); if (!isNaN(d)) return String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0'); } return s.substring(0, 5);
+        }
+        function lerValor(obj, chaves) {
+            const norm = {}; for (let k in obj) norm[k.toLowerCase().trim()] = obj[k];
+            for (let c of chaves) if (norm[c] !== undefined && norm[c] !== null && norm[c] !== "") return norm[c]; return "";
         }
 
         const OmnichannelService = {
             executarEnvio: function(telefone, mensagem) {
-                const numeroLimpo = telefone.replace(/\D/g, '');
-                if (numeroLimpo.length < 10) return alert("Número inválido.");
+                const numeroLimpo = telefone.replace(/\D/g, ''); if (numeroLimpo.length < 10) return alert("Número inválido.");
                 window.open(`https://wa.me/55${numeroLimpo}?text=${encodeURIComponent(mensagem)}`, '_blank');
-            },
-            templateConfirmacao: (pac, med, und) => `Olá ${pac}, tudo bem? 💙\nPassando para confirmar sua consulta com o Dr(a). ${med} na unidade ${und}.\n\nPor favor, responda SIM para confirmar.`,
-            templateOrcamento: (pac, med, valor) => `Olá ${pac}!\nSeu orçamento de exames realizados na clínica com o médico ${med} está pronto. Valor total: R$ ${valor}.\n\nComo prefere realizar o pagamento?`,
-            templateDocumentos: (pac, med, linksListados, temExame) => {
-                let msg = `Olá ${pac}, aqui é da equipe TeleAmei! 💙\n\nConforme sua consulta com o(a) Dr(a). ${med}, seguem os links seguros para acessar seus documentos médicos:\n${linksListados}`;
-                if (temExame) msg += `\n⚠️ Em breve, nosso time entrará em contato com o orçamento completo para realização e instruções para os exames solicitados.`;
-                msg += `\n\nQualquer dúvida, estamos à disposição!`;
-                return msg;
             }
         };
 
         function dispararWhatsApp(tipo) {
-            const tel = document.getElementById('telefonePaciente').value;
-            const pac = document.getElementById('nomePaciente').value || "Paciente";
-            const med = document.getElementById('medicoResponsavel').value || "médico";
-            if (!tel) return alert("Preencha o Telefone / WhatsApp.");
+            const tel = document.getElementById('telefonePaciente').value; const pac = document.getElementById('nomePaciente').value || "Paciente"; const med = document.getElementById('medicoResponsavel').value || "médico";
+            if (!tel) return alert("Preencha o Telefone.");
             let msg = "";
-
-            if (tipo === 'confirmacao') msg = OmnichannelService.templateConfirmacao(pac, med, document.getElementById('unidadeAtendimento').value || "clínica");
-            else if (tipo === 'orcamento') msg = OmnichannelService.templateOrcamento(pac, med, document.getElementById('orcamentoTotal').value || "0.00");
+            if (tipo === 'confirmacao') msg = `Olá ${pac}!\nPassando para confirmar sua consulta com Dr(a). ${med} na unidade ${document.getElementById('unidadeAtendimento').value}.\nResponda SIM para confirmar.`;
+            else if (tipo === 'orcamento') msg = `Olá ${pac}!\nSeu orçamento de exames está pronto. Valor total: R$ ${document.getElementById('orcamentoTotal').value}.\nComo prefere realizar o pagamento?`;
             else if (tipo === 'documentos') {
-                const ativos = anexosGlobais.filter(a => a.status === 'ativo');
-                if (ativos.length === 0) return alert("Nenhum documento ativo salvo na nuvem. Salve o prontuário primeiro.");
-                let linksFormatados = ""; let temExame = false;
-                ativos.forEach(tag => { 
-                    let nomeCategoria = tag.nome.split(' - ')[0]; 
-                    if (nomeCategoria === 'Sol. Exames') nomeCategoria = 'Solicitação de Exames';
-                    if (nomeCategoria === 'Receita/Outros') nomeCategoria = 'Receita Médica / Outros';
-                    linksFormatados += `\n📄 *${nomeCategoria}*:\n${tag.url}\n`; 
-                    if(tag.nome.includes('Sol. Exames')) temExame = true;
-                });
-                msg = OmnichannelService.templateDocumentos(pac, med, linksFormatados, temExame);
+                const ativos = anexosGlobais.filter(a => a.status === 'ativo'); if (ativos.length === 0) return alert("Nenhum doc salvo.");
+                let links = ""; ativos.forEach(tag => links += `\n📄 *${tag.nome.split(' - ')[0]}*:\n${tag.url}\n`);
+                msg = `Olá ${pac}!\nConforme sua consulta com Dr(a). ${med}, acesse seus documentos:\n${links}\n\nQualquer dúvida, estamos à disposição!`;
             }
             OmnichannelService.executarEnvio(tel, msg);
         }
 
         function validarAcesso() {
-            const sessao = localStorage.getItem("teleamei_sessao");
-            if (!sessao) { window.location.href = "login.html"; return; }
-            usuarioLogado = JSON.parse(sessao);
-            
-            document.getElementById('usuarioLogadoNome').innerText = usuarioLogado.nome;
-            if (usuarioLogado.perfil === "Admin") {
-                document.getElementById('btnBIAdminNav').classList.remove('hidden');
-                document.getElementById('btnDesempenhoNav').classList.remove('hidden');
-            } else if (usuarioLogado.perfil !== "Medico") {
-                document.getElementById('btnDesempenhoNav').classList.remove('hidden');
+            const sessaoStr = localStorage.getItem("teleamei_sessao");
+            if (!sessaoStr) { window.location.href = "login.html"; return; }
+            const sessao = JSON.parse(sessaoStr);
+            const limiteHoras = 24 * 60 * 60 * 1000; 
+            if (!sessao.timestamp || (Date.now() - sessao.timestamp > limiteHoras)) {
+                localStorage.removeItem("teleamei_sessao"); alert("Sessão expirada por segurança (24h). Faça login novamente."); window.location.href = "login.html"; return;
             }
+            usuarioLogado = sessao; document.getElementById('usuarioLogadoNome').innerText = usuarioLogado.nome;
+            if (usuarioLogado.perfil === "Admin") { document.getElementById('btnBIAdminNav').classList.remove('hidden'); document.getElementById('btnDesempenhoNav').classList.remove('hidden'); } 
+            else if (usuarioLogado.perfil !== "Medico") document.getElementById('btnDesempenhoNav').classList.remove('hidden');
             if (usuarioLogado.perfil === "Medico") document.getElementById('blocoMedico').classList.remove('hidden');
-            else { 
-                document.getElementById('botoesOperacao').classList.remove('hidden'); 
-                document.getElementById('blocoPreConsulta').classList.remove('hidden'); 
-                document.getElementById('botoesMedico').classList.remove('hidden');
-            }
+            else { document.getElementById('botoesOperacao').classList.remove('hidden'); document.getElementById('blocoPreConsulta').classList.remove('hidden'); document.getElementById('botoesMedico').classList.remove('hidden'); }
             carregarDadosDinamicos(); verificarModoEdicao();
         }
 
@@ -218,181 +169,92 @@
         function carregarDadosDinamicos() {
             fetch(URL_API + "?acao=listar_usuarios").then(res => res.json()).then(retorno => {
                 if (retorno.status === "sucesso") {
-                    const selectMed = document.getElementById('medicoResponsavel');
-                    const selectUnd = document.getElementById('unidadeAtendimento');
-                    selectMed.innerHTML = '<option value="">Selecione o Médico...</option>';
-                    selectUnd.innerHTML = '<option value="">Selecione a Unidade...</option>';
+                    const sMed = document.getElementById('medicoResponsavel'); const sUnd = document.getElementById('unidadeAtendimento');
+                    sMed.innerHTML = '<option value="">Selecione o Médico...</option>'; sUnd.innerHTML = '<option value="">Selecione a Unidade...</option>';
                     const setUnd = new Set(['Barretos', 'Cotia', 'Campinas', 'Camaragibe', 'Campinas Sudoeste']);
-                    
                     retorno.dados.forEach(u => {
-                        const unds = u.Unidades_Vinculadas || u.unidades || u.Unidades || "";
-                        if (unds) unds.split(',').forEach(un => { if (un.trim() !== "") setUnd.add(un.trim()); });
-                        const perfil = String(u.Perfil || u.perfil || "").toLowerCase().trim();
-                        const status = String(u.Status || u.status || "").toLowerCase().trim();
-                        if (perfil === "medico" && status === "ativo") {
-                            const nomeM = u.Nome_Completo || u.nome || u.Nome || "";
-                            if (nomeM) { const op = document.createElement('option'); op.value = nomeM; op.innerText = nomeM; selectMed.appendChild(op); }
+                        const unds = u.Unidades_Vinculadas || u.unidades || ""; if (unds) unds.split(',').forEach(un => { if (un.trim() !== "") setUnd.add(un.trim()); });
+                        if (String(u.Perfil || u.perfil).toLowerCase() === "medico" && String(u.Status || u.status).toLowerCase() === "ativo") {
+                            const nome = u.Nome_Completo || u.nome || ""; if (nome) { const op = document.createElement('option'); op.value = nome; op.innerText = nome; sMed.appendChild(op); }
                         }
                     });
-                    Array.from(setUnd).sort().forEach(un => { const op = document.createElement('option'); op.value = un; op.innerText = un; selectUnd.appendChild(op); });
+                    Array.from(setUnd).sort().forEach(un => { const op = document.createElement('option'); op.value = un; op.innerText = un; sUnd.appendChild(op); });
                 }
             });
         }
 
-        function lerValor(obj, possiveisChaves) {
-            const normalizedObj = {};
-            for (let key in obj) { normalizedObj[key.toLowerCase().trim()] = obj[key]; }
-            for (let chave of possiveisChaves) {
-                if (normalizedObj[chave] !== undefined && normalizedObj[chave] !== null && normalizedObj[chave] !== "") return normalizedObj[chave];
-            }
-            return "";
-        }
-
         function verificarModoEdicao() {
             idEdicao = new URLSearchParams(window.location.search).get('id');
-            if (idEdicao) {
-                fetch(URL_API).then(res => res.json()).then(res => {
-                    if (res.status === "sucesso") {
-                        const registro = res.dados.find(r => (r.ID || r.id) === idEdicao);
-                        if (registro) preencherFormulario(registro);
-                    }
-                });
-            }
+            if (idEdicao) fetch(URL_API).then(res => res.json()).then(res => { if (res.status === "sucesso") { const reg = res.dados.find(r => (r.ID || r.id) === idEdicao); if (reg) preencherFormulario(reg); } });
         }
 
         function preencherFormulario(dados) {
-            document.getElementById('nomePaciente').value = lerValor(dados, ['paciente', 'nome', 'nome_paciente']);
-            document.getElementById('telefonePaciente').value = lerValor(dados, ['telefone', 'whatsapp', 'contato']);
+            document.getElementById('nomePaciente').value = lerValor(dados, ['paciente', 'nome_paciente']);
+            document.getElementById('telefonePaciente').value = lerValor(dados, ['telefone', 'whatsapp']);
             document.getElementById('especialidadeAgendada').value = lerValor(dados, ['especialidade', 'especialidade_solicitada']);
-            
-            // HIGIENIZAÇÃO DE DATAS E HORAS APLICADA AQUI
             document.getElementById('dataAgendada').value = higienizarData(lerValor(dados, ['data_agendada', 'data agendada', 'data']));
             document.getElementById('horaAgendada').value = higienizarHora(lerValor(dados, ['hora_agendada', 'hora agendada', 'hora']));
             document.getElementById('dataExame').value = higienizarData(lerValor(dados, ['data_exame', 'data exame']));
+            document.getElementById('linkMeet').value = lerValor(dados, ['link_meet', 'meet']);
+            document.getElementById('valorConsulta').value = lerValor(dados, ['valor_consulta', 'valor']);
+            document.getElementById('orcamentoTotal').value = lerValor(dados, ['total_exames', 'exames']);
+            document.getElementById('orcamentoCusto').value = lerValor(dados, ['custo_exames', 'custo']);
             
-            document.getElementById('linkMeet').value = lerValor(dados, ['link_meet', 'link google meet', 'meet']);
-            document.getElementById('valorConsulta').value = lerValor(dados, ['valor_consulta', 'valor consulta', 'valor']);
-            document.getElementById('orcamentoTotal').value = lerValor(dados, ['total_exames', 'total exames', 'exames']);
-            document.getElementById('orcamentoCusto').value = lerValor(dados, ['custo_exames', 'custo exames', 'custo']);
-            
-            const statusMedBD = lerValor(dados, ['status_medico', 'status medico']);
-            if(statusMedBD) document.getElementById('statusMedico').value = statusMedBD;
-            const statusAtual = lerValor(dados, ['status_consulta', 'status consulta', 'status']) || "Aguardando agendamento";
-            document.getElementById('statusOperacao').value = statusAtual;
+            const sm = lerValor(dados, ['status_medico']); if(sm) document.getElementById('statusMedico').value = sm;
+            document.getElementById('statusOperacao').value = lerValor(dados, ['status_consulta', 'status']) || "Aguardando agendamento";
 
-            const anexoBruto = lerValor(dados, ['link_anexo', 'link anexo', 'anexo']);
-            anexosGlobais = [];
-            if (anexoBruto && anexoBruto !== "Sem anexo") {
-                try { anexosGlobais = JSON.parse(anexoBruto); } 
-                catch(e) { anexoBruto.split(" | ").forEach((url, i) => { if(url.trim() !== "") anexosGlobais.push({ url: url.trim(), nome: `Doc Legado ${i+1}`, status: 'ativo' }); }); }
-            }
+            const ax = lerValor(dados, ['link_anexo', 'anexo']); anexosGlobais = [];
+            if (ax && ax !== "Sem anexo") { try { anexosGlobais = JSON.parse(ax); } catch(e) { ax.split(" | ").forEach((url, i) => { if(url.trim() !== "") anexosGlobais.push({ url: url.trim(), nome: `Doc Legado ${i+1}`, status: 'ativo' }); }); } }
             renderizarAnexos();
 
             setTimeout(() => { 
-                const medBD = lerValor(dados, ['medico_responsavel', 'medico responsavel', 'medico']);
-                const undBD = lerValor(dados, ['unidade', 'unidade de atendimento', 'unidade_atendimento']);
-                if (medBD) document.getElementById('medicoResponsavel').value = medBD;
-                if (undBD) document.getElementById('unidadeAtendimento').value = undBD; 
+                const md = lerValor(dados, ['medico_responsavel', 'medico']); const un = lerValor(dados, ['unidade', 'unidade_atendimento']);
+                if (md) document.getElementById('medicoResponsavel').value = md; if (un) document.getElementById('unidadeAtendimento').value = un; 
             }, 800);
             verificarRegras();
         }
 
         function renderizarAnexos() {
-            const divPrincipal = document.getElementById('divAnexoExistente');
-            const lista = document.getElementById('listaAnexosExistentes');
-            lista.innerHTML = "";
-            if (anexosGlobais.length === 0) { divPrincipal.classList.add('hidden'); return; }
-            divPrincipal.classList.remove('hidden');
-
-            anexosGlobais.forEach((anexo, index) => {
-                let corFundo = anexo.status === 'ativo' ? 'bg-white border-indigo-200 shadow-sm' : 'bg-gray-100 border-gray-300 opacity-70';
-                let nomeRiscado = anexo.status === 'ativo' ? '' : 'line-through text-gray-500';
-                let tagStatus = anexo.status === 'ativo' ? '' : `<span class="text-[10px] uppercase font-bold text-red-500 ml-2">(${anexo.status})</span>`;
-                let botoes = '';
-                if (anexo.status === 'ativo') {
-                    if (usuarioLogado.perfil === 'Admin') botoes = `<button type="button" onclick="alterarStatusAnexo(${index}, 'excluido')" class="text-xs text-red-600 font-bold hover:underline bg-red-50 px-2 py-1 rounded border border-red-200">❌ Excluir</button>`;
-                    else botoes = `<button type="button" onclick="alterarStatusAnexo(${index}, 'substituido')" class="text-xs text-orange-600 font-bold hover:underline bg-orange-50 px-2 py-1 rounded border border-orange-200">🔄 Substituir</button>`;
-                }
-                lista.innerHTML += `<div class="flex flex-col sm:flex-row items-start sm:items-center justify-between p-3 rounded-lg border w-full ${corFundo}"><a href="${anexo.url}" target="_blank" class="text-indigo-800 font-bold text-xs truncate hover:underline ${nomeRiscado}">📄 ${anexo.nome} ${tagStatus}</a><div class="mt-2 sm:mt-0 flex gap-3">${botoes}</div></div>`;
+            const div = document.getElementById('divAnexoExistente'); const lista = document.getElementById('listaAnexosExistentes'); lista.innerHTML = "";
+            if (anexosGlobais.length === 0) { div.classList.add('hidden'); return; } div.classList.remove('hidden');
+            anexosGlobais.forEach((a, i) => {
+                let bg = a.status === 'ativo' ? 'bg-white' : 'bg-gray-100 opacity-70'; let sc = a.status === 'ativo' ? '' : 'line-through';
+                let bt = a.status === 'ativo' ? (usuarioLogado.perfil === 'Admin' ? `<button type="button" onclick="alterarStatusAnexo(${i}, 'excluido')" class="text-xs text-red-600 font-bold hover:underline">❌ Excluir</button>` : `<button type="button" onclick="alterarStatusAnexo(${i}, 'substituido')" class="text-xs text-orange-600 font-bold hover:underline">🔄 Substituir</button>`) : '';
+                lista.innerHTML += `<div class="flex items-center justify-between p-3 rounded border ${bg}"><a href="${a.url}" target="_blank" class="text-indigo-800 font-bold text-xs ${sc}">📄 ${a.nome}</a><div>${bt}</div></div>`;
             });
         }
-
-        function alterarStatusAnexo(index, novoStatus) {
-            if(novoStatus === 'excluido' && confirm("Deseja realmente EXCLUIR este documento?")) { anexosGlobais[index].status = 'excluido'; renderizarAnexos(); } 
-            else if (novoStatus === 'substituido' && confirm("Marcar para SUBSTITUIÇÃO?\nO arquivo atual será inativado no histórico.")) { anexosGlobais[index].status = 'substituido'; renderizarAnexos(); }
-        }
+        function alterarStatusAnexo(i, st) { if(confirm("Confirmar alteração de status deste documento?")) { anexosGlobais[i].status = st; renderizarAnexos(); } }
 
         function verificarRegras() {
-            if (usuarioLogado.perfil === "Medico") {
-                if (document.getElementById('statusMedico').value === "sim") document.getElementById('blocoAnexosMedico').classList.remove('hidden');
-                else document.getElementById('blocoAnexosMedico').classList.add('hidden');
-            } else {
-                const status = document.getElementById('statusOperacao').value;
-                if (status === "Aguardando orçamento dos exames" || status === "Exames Agendados") document.getElementById('blocoOrcamento').classList.remove('hidden');
-                else document.getElementById('blocoOrcamento').classList.add('hidden');
-            }
+            if (usuarioLogado.perfil === "Medico") { document.getElementById('blocoAnexosMedico').classList.toggle('hidden', document.getElementById('statusMedico').value !== "sim"); } 
+            else { const st = document.getElementById('statusOperacao').value; document.getElementById('blocoOrcamento').classList.toggle('hidden', !(st === "Aguardando orçamento dos exames" || st === "Exames Agendados")); }
         }
-
-        function verificarAlertaOrcamento() {
-            const total = parseFloat(document.getElementById('orcamentoTotal').value) || 0;
-            const custo = parseFloat(document.getElementById('orcamentoCusto').value) || 0;
-            if (total > 0 && custo > 0) document.getElementById('campoDataExame').classList.remove('hidden');
-            else document.getElementById('campoDataExame').classList.add('hidden');
-        }
+        function verificarAlertaOrcamento() { document.getElementById('campoDataExame').classList.toggle('hidden', !(parseFloat(document.getElementById('orcamentoTotal').value)>0 && parseFloat(document.getElementById('orcamentoCusto').value)>0)); }
 
         function salvarDados() {
-            let statusOp = document.getElementById('statusOperacao').value;
-            let statusMed = document.getElementById('statusMedico').value;
-            const dataConsulta = document.getElementById('dataAgendada').value;
-            const horaConsulta = document.getElementById('horaAgendada').value;
-            const linkMeet = document.getElementById('linkMeet').value;
+            let stOp = document.getElementById('statusOperacao').value; let stMd = document.getElementById('statusMedico').value;
+            const dt = document.getElementById('dataAgendada').value; const hr = document.getElementById('horaAgendada').value; const mt = document.getElementById('linkMeet').value;
+            if (usuarioLogado.perfil === "Medico" && !stMd) return alert("❌ Informe se a consulta foi realizada.");
+            if ((dt || hr) && !mt) return alert("⚠️ Link do Google Meet é obrigatório ao definir data/hora.");
+            if (stOp === "Aguardando agendamento" && dt && hr && mt) stOp = "Agendado";
+            if (usuarioLogado.perfil === "Medico" && stMd === "sim") stOp = "Concluído";
 
-            if (usuarioLogado.perfil === "Medico" && !statusMed) { alert("❌ Informe se a consulta foi realizada."); return; }
-            if ((dataConsulta || horaConsulta) && !linkMeet) { alert("⚠️ O Link do Google Meet é obrigatório ao definir data e hora."); return; }
-
-            if (statusOp === "Aguardando agendamento" && dataConsulta && horaConsulta && linkMeet) statusOp = "Agendado";
-            if (usuarioLogado.perfil === "Medico" && statusMed === "sim") statusOp = "Concluído";
-
-            const payload = {
-                paciente: document.getElementById('nomePaciente').value,
-                telefone: document.getElementById('telefonePaciente').value,
-                especialidade: document.getElementById('especialidadeAgendada').value,
-                medicoResponsavel: document.getElementById('medicoResponsavel').value,
-                unidade: document.getElementById('unidadeAtendimento').value,
-                dataAgendada: dataConsulta, horaAgendada: horaConsulta, linkMeet: linkMeet,
-                valorConsulta: parseFloat(document.getElementById('valorConsulta').value) || 0,
-                totalExames: parseFloat(document.getElementById('orcamentoTotal').value) || 0,
-                custoExames: parseFloat(document.getElementById('orcamentoCusto').value) || 0,
-                dataExame: document.getElementById('dataExame').value,
-                statusConsulta: statusOp, statusMedico: statusMed,
-                anexosAtuais: anexosGlobais, operadorResponsavel: usuarioLogado.nome
+            const py = {
+                paciente: document.getElementById('nomePaciente').value, telefone: document.getElementById('telefonePaciente').value, especialidade: document.getElementById('especialidadeAgendada').value, medicoResponsavel: document.getElementById('medicoResponsavel').value,
+                unidade: document.getElementById('unidadeAtendimento').value, dataAgendada: dt, horaAgendada: hr, linkMeet: mt, valorConsulta: parseFloat(document.getElementById('valorConsulta').value) || 0, totalExames: parseFloat(document.getElementById('orcamentoTotal').value) || 0,
+                custoExames: parseFloat(document.getElementById('orcamentoCusto').value) || 0, dataExame: document.getElementById('dataExame').value, statusConsulta: stOp, statusMedico: stMd, anexosAtuais: anexosGlobais, operadorResponsavel: usuarioLogado.nome
             };
-            
-            if (idEdicao) { payload.acao = "atualizar_registro"; payload.id_registro = idEdicao; }
+            if (idEdicao) { py.acao = "atualizar_registro"; py.id_registro = idEdicao; }
+            const btn = document.getElementById('btnSalvar'); btn.innerText = "Salvando..."; btn.disabled = true;
 
-            const btn = document.getElementById('btnSalvar');
-            btn.innerText = "Salvando..."; btn.disabled = true;
-
-            let promessas = [];
-            const tiposAnexos = [ { id: 'anexoAtestado', tipo: 'Atestado' }, { id: 'anexoSolExames', tipo: 'Sol. Exames' }, { id: 'anexoEncaminhamento', tipo: 'Encaminhamento' }, { id: 'anexoOutros', tipo: 'Receita/Outros' }, { id: 'anexoRecepcao', tipo: 'Recepção' } ];
-            tiposAnexos.forEach(item => {
-                const el = document.getElementById(item.id);
-                if (el && el.files.length > 0) {
-                    Array.from(el.files).forEach(file => {
-                        promessas.push(new Promise((resolve) => {
-                            let reader = new FileReader();
-                            reader.onload = e => resolve({ base64: e.target.result.split(',')[1], mimeType: file.type, nome: `${item.tipo} - ${file.name}` });
-                            reader.readAsDataURL(file);
-                        }));
-                    });
-                }
+            let prom = []; const tps = [{ id: 'anexoAtestado', tipo: 'Atestado' }, { id: 'anexoSolExames', tipo: 'Sol. Exames' }, { id: 'anexoEncaminhamento', tipo: 'Encaminhamento' }, { id: 'anexoOutros', tipo: 'Receita/Outros' }, { id: 'anexoRecepcao', tipo: 'Recepção' }];
+            tps.forEach(it => {
+                const el = document.getElementById(it.id);
+                if (el && el.files.length > 0) { Array.from(el.files).forEach(f => prom.push(new Promise(r => { let rd = new FileReader(); rd.onload = e => r({ base64: e.target.result.split(',')[1], mimeType: f.type, nome: `${it.tipo} - ${f.name}` }); rd.readAsDataURL(f); }))); }
             });
-
-            Promise.all(promessas).then(arquivosLidos => {
-                if (arquivosLidos.length > 0) payload.arquivos = arquivosLidos;
-                fetch(URL_API, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(payload) })
-                .then(() => { alert("✅ Prontuário atualizado!"); voltarPainel(); })
-                .finally(() => { btn.innerText = "Gravar Prontuário"; btn.disabled = false; });
+            Promise.all(prom).then(arqs => {
+                if (arqs.length > 0) py.arquivos = arqs;
+                fetch(URL_API, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(py) }).then(() => { alert("✅ Prontuário salvo!"); voltarPainel(); }).finally(() => { btn.innerText = "Gravar Prontuário"; btn.disabled = false; });
             });
         }
         window.onload = validarAcesso;

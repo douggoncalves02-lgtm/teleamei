@@ -17,196 +17,93 @@
     </div>
 
     <div class="max-w-6xl mx-auto space-y-6">
-        
         <div class="bg-white p-6 rounded-xl shadow-lg border-t-4 border-indigo-600">
             <div class="flex justify-between items-center cursor-pointer" onclick="toggleConfigAgenda()">
-                <h2 class="text-lg font-bold text-indigo-900 flex items-center gap-2">
-                    📅 Configurar Meus Dias e Horários Disponíveis
-                </h2>
+                <h2 class="text-lg font-bold text-indigo-900 flex items-center gap-2">📅 Configurar Meus Dias Disponíveis</h2>
                 <span id="setaAgenda" class="text-indigo-600 text-xl font-bold">▼</span>
             </div>
-
             <div id="corpoConfigAgenda" class="hidden mt-4 pt-4 border-t border-gray-200">
-                <p class="text-xs text-gray-500 mb-4">Marque abaixo seus horários de atendimento padrão na plataforma TeleAmei para direcionamento da equipe operacional.</p>
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-4" id="gridDiasAtendimento"></div>
-                <button onclick="salvarMinhaAgenda()" class="mt-4 bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-2.5 rounded-lg font-bold text-sm shadow transition">
-                    Salvar Disponibilidade de Agenda
-                </button>
+                <button onclick="salvarMinhaAgenda()" class="mt-4 bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-2.5 rounded-lg font-bold text-sm shadow">Salvar Agenda</button>
             </div>
         </div>
 
         <div class="bg-white p-6 md:p-8 rounded-xl shadow-lg border-t-4 border-blue-600">
-            <div class="border-b pb-6 mb-6">
+            <div class="border-b pb-4 mb-6">
                 <h1 class="text-2xl font-bold text-blue-900">Sua Agenda de Atendimentos</h1>
-                <p class="text-sm text-gray-500">Ordenado por horário de atendimento. Pacientes com alerta vermelho necessitam de atenção imediata.</p>
             </div>
-
             <div id="gridPacientes" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                <div class="col-span-full text-center py-12 text-blue-600 font-bold">Buscando sua agenda e prioridades...</div>
+                <div class="col-span-full text-center py-12 text-blue-600 font-bold">Buscando sua agenda...</div>
             </div>
         </div>
     </div>
 
     <script>
         const URL_API = "https://script.google.com/macros/s/AKfycby-1WKshFbFVNfQliUY65_krsep0MnR3HEi6JlYEUG7mSiPVHIwPwRdIlSVnXbVFVQm/exec";
-        let usuarioLogado = null;
-        const diasSemana = ["Segunda-feira", "Terça-feira", "Quarta-feira", "Quinta-feira", "Sexta-feira", "Sábado"];
+        let usuarioLogado = null; const diasSemana = ["Segunda-feira", "Terça-feira", "Quarta-feira", "Quinta-feira", "Sexta-feira", "Sábado"];
 
-        // HIGIENIZADOR 360º PARA DATAS E HORAS (Cura bugs legados)
         function higienizarData(val) {
-            if (!val) return "";
-            let s = String(val).trim();
-            if (s.includes("1899") || s.includes("1900")) return ""; 
-            if (s.includes("T")) {
-                let d = new Date(s);
-                if (!isNaN(d)) return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
-            }
-            if (s.includes("/")) {
-                let p = s.split('/');
-                if (p.length === 3) return `${p[2]}-${p[1]}-${p[0]}`;
-            }
-            return s.substring(0, 10);
+            if (!val) return ""; let s = String(val).trim(); if (s.includes("1899") || s.includes("1900")) return ""; 
+            if (s.includes("T")) { let d = new Date(s); if (!isNaN(d)) return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); }
+            if (s.includes("/")) { let p = s.split('/'); if (p.length === 3) return `${p[2]}-${p[1]}-${p[0]}`; } return s.substring(0, 10);
         }
-
         function higienizarHora(val) {
-            if (!val) return "";
-            let s = String(val).trim();
-            if (/^\d{2}:\d{2}/.test(s)) return s.substring(0, 5);
-            if (s.includes("T")) {
-                let d = new Date(s);
-                if (!isNaN(d)) return String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0');
-            }
-            return s.substring(0, 5);
+            if (!val) return ""; let s = String(val).trim(); if (/^\d{2}:\d{2}/.test(s)) return s.substring(0, 5);
+            if (s.includes("T")) { let d = new Date(s); if (!isNaN(d)) return String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0'); } return s.substring(0, 5);
         }
-
-        function lerValor(obj, possiveisChaves) {
-            const normalizedObj = {};
-            for (let key in obj) { normalizedObj[key.toLowerCase().trim()] = obj[key]; }
-            for (let chave of possiveisChaves) {
-                if (normalizedObj[chave] !== undefined && normalizedObj[chave] !== null && normalizedObj[chave] !== "") return normalizedObj[chave];
-            }
-            return "";
-        }
+        function lerValor(obj, chaves) { const norm = {}; for (let k in obj) norm[k.toLowerCase().trim()] = obj[k]; for (let c of chaves) if (norm[c] !== undefined && norm[c] !== null && norm[c] !== "") return norm[c]; return ""; }
 
         function validarAcesso() {
-            const sessao = localStorage.getItem("teleamei_sessao");
-            if (!sessao) { window.location.href = "login.html"; return; }
-            usuarioLogado = JSON.parse(sessao);
-            if (usuarioLogado.perfil !== "Medico") { alert("Área restrita para médicos."); window.location.href = "login.html"; return; }
-            document.getElementById('usuarioLogadoNome').innerText = usuarioLogado.nome;
+            const sessaoStr = localStorage.getItem("teleamei_sessao");
+            if (!sessaoStr) { window.location.href = "login.html"; return; }
+            const sessao = JSON.parse(sessaoStr);
+            const limiteHoras = 24 * 60 * 60 * 1000; 
+            if (!sessao.timestamp || (Date.now() - sessao.timestamp > limiteHoras)) {
+                localStorage.removeItem("teleamei_sessao"); alert("Sessão expirada (24h). Faça login novamente."); window.location.href = "login.html"; return;
+            }
+            if (sessao.perfil !== "Medico") { alert("Área restrita para médicos."); window.location.href = "login.html"; return; }
+            usuarioLogado = sessao; document.getElementById('usuarioLogadoNome').innerText = usuarioLogado.nome;
             renderizarFormularioAgenda(); carregarAgendaMedica();
         }
 
         function fazerLogout() { localStorage.removeItem("teleamei_sessao"); window.location.href = "login.html"; }
-
-        function toggleConfigAgenda() {
-            document.getElementById('corpoConfigAgenda').classList.toggle('hidden');
-            const seta = document.getElementById('setaAgenda');
-            seta.innerText = seta.innerText === "▼" ? "▲" : "▼";
-        }
+        function toggleConfigAgenda() { document.getElementById('corpoConfigAgenda').classList.toggle('hidden'); const s = document.getElementById('setaAgenda'); s.innerText = s.innerText === "▼" ? "▲" : "▼"; }
 
         function renderizarFormularioAgenda() {
-            const container = document.getElementById('gridDiasAtendimento');
-            container.innerHTML = "";
+            const c = document.getElementById('gridDiasAtendimento'); c.innerHTML = "";
             diasSemana.forEach(dia => {
                 const idDia = dia.toLowerCase().replace('-feira', '');
-                container.innerHTML += `
-                    <div class="bg-slate-50 p-3 rounded-lg border border-slate-200">
-                        <label class="flex items-center space-x-2 font-bold text-slate-800 text-sm mb-2"><input type="checkbox" id="check_${idDia}" class="rounded text-indigo-600"><span>${dia}</span></label>
-                        <div class="grid grid-cols-2 gap-2 text-xs">
-                            <div><label class="text-gray-500">Início</label><input type="time" id="inicio_${idDia}" value="08:00" class="w-full p-1 border rounded bg-white"></div>
-                            <div><label class="text-gray-500">Fim</label><input type="time" id="fim_${idDia}" value="18:00" class="w-full p-1 border rounded bg-white"></div>
-                        </div>
-                    </div>
-                `;
+                c.innerHTML += `<div class="bg-slate-50 p-3 rounded-lg border border-slate-200"><label class="flex items-center space-x-2 font-bold text-sm mb-2"><input type="checkbox" id="check_${idDia}" class="rounded text-indigo-600"><span>${dia}</span></label><div class="grid grid-cols-2 gap-2 text-xs"><div><label>Início</label><input type="time" id="inicio_${idDia}" value="08:00" class="w-full p-1 border rounded"></div><div><label>Fim</label><input type="time" id="fim_${idDia}" value="18:00" class="w-full p-1 border rounded"></div></div></div>`;
             });
         }
-
         function salvarMinhaAgenda() {
-            const disponibilidade = {};
-            diasSemana.forEach(dia => {
-                const idDia = dia.toLowerCase().replace('-feira', '');
-                if (document.getElementById(`check_${idDia}`).checked) {
-                    disponibilidade[dia] = { inicio: document.getElementById(`inicio_${idDia}`).value, fim: document.getElementById(`fim_${idDia}`).value };
-                }
-            });
-            fetch(URL_API, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify({ acao: "salvar_agenda_medica", medico: usuarioLogado.nome, diasHorarios: disponibilidade }) })
-            .then(() => alert("✅ Sua disponibilidade foi salva com sucesso no sistema!"));
+            const disp = {}; diasSemana.forEach(dia => { const id = dia.toLowerCase().replace('-feira', ''); if (document.getElementById(`check_${id}`).checked) disp[dia] = { inicio: document.getElementById(`inicio_${id}`).value, fim: document.getElementById(`fim_${id}`).value }; });
+            fetch(URL_API, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify({ acao: "salvar_agenda_medica", medico: usuarioLogado.nome, diasHorarios: disp }) }).then(() => alert("✅ Agenda salva!"));
         }
 
         function carregarAgendaMedica() {
-            const container = document.getElementById('gridPacientes');
+            const c = document.getElementById('gridPacientes');
             fetch(URL_API).then(res => res.json()).then(res => {
-                container.innerHTML = '';
+                c.innerHTML = '';
                 if (res.status === "sucesso") {
-                    let consultas = res.dados.filter(c => {
-                        const med = lerValor(c, ['medico_responsavel', 'medico responsavel', 'medico']);
-                        const status = lerValor(c, ['status_consulta', 'status consulta', 'status']);
-                        return med === usuarioLogado.nome && status !== "sim" && status !== "nao" && status !== "Concluído" && status !== "concluído";
-                    });
-
-                    if (consultas.length === 0) {
-                        container.innerHTML = '<div class="col-span-full text-center py-12 text-gray-500 border-2 border-dashed border-gray-300 rounded-lg">Agenda livre. Nenhum atendimento pendente no momento.</div>';
-                        return;
-                    }
-
-                    consultas.sort((a, b) => {
-                        const dateA = new Date(higienizarData(lerValor(a, ['data_agendada', 'data agendada'])) || 0);
-                        const dateB = new Date(higienizarData(lerValor(b, ['data_agendada', 'data agendada'])) || 0);
-                        return dateA - dateB;
-                    });
-
+                    let cons = res.dados.filter(r => lerValor(r, ['medico_responsavel', 'medico']) === usuarioLogado.nome && !["sim", "nao", "concluído"].includes(lerValor(r, ['status_consulta', 'status']).toLowerCase()));
+                    if (cons.length === 0) { c.innerHTML = '<div class="col-span-full text-center py-12 text-gray-500">Agenda livre.</div>'; return; }
+                    cons.sort((a, b) => new Date(higienizarData(lerValor(a, ['data_agendada']))) - new Date(higienizarData(lerValor(b, ['data_agendada']))));
                     const agora = new Date();
-                    consultas.forEach(c => {
-                        // HIGIENIZAÇÃO DE DATAS E HORAS APLICADA AQUI
-                        const dataAgendada = higienizarData(lerValor(c, ['data_agendada', 'data agendada']));
-                        const horaAgendada = higienizarHora(lerValor(c, ['hora_agendada', 'hora agendada']));
-                        const linkMeet = lerValor(c, ['link_meet', 'link google meet', 'meet']);
-                        const especialidade = lerValor(c, ['especialidade', 'especialidade_solicitada']);
-                        const paciente = lerValor(c, ['paciente', 'nome_paciente']);
-                        const unidade = lerValor(c, ['unidade', 'unidade_atendimento']);
-                        const statusConsulta = lerValor(c, ['status_consulta', 'status']);
-                        const idStr = lerValor(c, ['id', 'id_registro']);
-
-                        let dataStr = 'Data N/I'; let alertaBorda = "border-gray-200 bg-gray-50"; let tagUrgencia = "";
-
-                        if (dataAgendada) {
-                            const partesData = dataAgendada.split('-');
-                            dataStr = partesData.length === 3 ? `${partesData[2]}/${partesData[1]}/${partesData[0]}` : dataAgendada;
-                            if (horaAgendada) dataStr += ` às ${horaAgendada}`;
-
-                            const dataConsulta = new Date(`${dataAgendada}T${horaAgendada || '00:00'}`);
-                            if (!isNaN(dataConsulta)) {
-                                const diffMinutos = (dataConsulta - agora) / (1000 * 60);
-                                if (diffMinutos <= 30 && diffMinutos >= -180) {
-                                    alertaBorda = "border-red-500 border-2 bg-red-50 shadow-md";
-                                    tagUrgencia = `<div class="text-xs font-bold text-red-600 mb-2 flex items-center gap-1"><span class="animate-pulse">🚨</span> Atenção Imediata</div>`;
-                                }
-                            }
+                    cons.forEach(r => {
+                        const dt = higienizarData(lerValor(r, ['data_agendada'])); const hr = higienizarHora(lerValor(r, ['hora_agendada']));
+                        const link = lerValor(r, ['link_meet']); const id = lerValor(r, ['id']);
+                        let dtStr = 'N/I'; let b = "border-gray-200 bg-gray-50"; let t = "";
+                        if (dt) {
+                            const p = dt.split('-'); dtStr = p.length === 3 ? `${p[2]}/${p[1]}/${p[0]}` : dt; if (hr) dtStr += ` às ${hr}`;
+                            const dC = new Date(`${dt}T${hr || '00:00'}`);
+                            if (!isNaN(dC)) { const m = (dC - agora) / 60000; if (m <= 30 && m >= -180) { b = "border-red-500 border-2 bg-red-50"; t = `<div class="text-xs font-bold text-red-600 mb-2">🚨 Atenção Imediata</div>`; } }
                         }
-
-                        let botaoMeet = linkMeet ? `<a href="${linkMeet}" target="_blank" class="block text-center text-xs font-bold text-green-700 hover:underline mb-3">🎥 Entrar na Videochamada</a>` : `<span class="block text-center text-xs text-red-500 mb-3">Sem Link de Reunião</span>`;
-
-                        container.innerHTML += `
-                            <div class="rounded-lg p-5 border ${alertaBorda} shadow-sm flex flex-col justify-between hover:shadow-md transition">
-                                <div>
-                                    ${tagUrgencia}
-                                    <div class="flex justify-between items-start mb-2"><span class="text-xs font-bold uppercase px-2 py-1 bg-blue-100 text-blue-800 rounded">${especialidade || 'Consulta'}</span><span class="text-xs font-bold text-indigo-900">${dataStr}</span></div>
-                                    <h3 class="text-lg font-bold text-gray-800">${paciente || 'Sem Nome'}</h3>
-                                    <p class="text-xs text-gray-600 mt-1">Unidade: <strong>${unidade || 'N/A'}</strong></p>
-                                    <p class="text-xs text-gray-600">Status: <span class="font-bold text-indigo-700 uppercase">${statusConsulta || 'Pendente'}</span></p>
-                                </div>
-                                <div class="mt-4 pt-4 border-t border-gray-200">
-                                    ${botaoMeet}
-                                    <button onclick="abrirAtendimento('${idStr}')" class="w-full bg-blue-600 text-white py-2 rounded text-xs font-bold hover:bg-blue-700 shadow">Acessar Prontuário</button>
-                                </div>
-                            </div>
-                        `;
+                        c.innerHTML += `<div class="rounded-lg p-5 border ${b} shadow-sm flex flex-col justify-between"><div>${t}<div class="flex justify-between mb-2"><span class="text-xs font-bold bg-blue-100 text-blue-800 rounded px-2">${lerValor(r, ['especialidade']) || 'Consulta'}</span><span class="text-xs font-bold text-indigo-900">${dtStr}</span></div><h3 class="text-lg font-bold">${lerValor(r, ['paciente']) || 'Sem Nome'}</h3><p class="text-xs">Status: <b>${lerValor(r, ['status_consulta'])}</b></p></div><div class="mt-4 pt-4 border-t">${link ? `<a href="${link}" target="_blank" class="block text-center text-xs font-bold text-green-700 hover:underline mb-3">🎥 Entrar na Reunião</a>` : '<span class="block text-center text-xs text-red-500 mb-3">Sem Link</span>'}<button onclick="window.location.href='admin.html?id=${id}'" class="w-full bg-blue-600 text-white py-2 rounded text-xs font-bold shadow">Prontuário</button></div></div>`;
                     });
                 }
             });
         }
-        function abrirAtendimento(id) { window.location.href = `admin.html?id=${id}`; }
         window.onload = validarAcesso;
     </script>
 </body>

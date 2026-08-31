@@ -3,90 +3,154 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Acesso Restrito - TeleAmei</title>
+    <title>Acesso - TeleAmei</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { background-color: #f9fafb; display: flex; align-items: center; justify-content: center; min-height: 100vh; margin: 0; }
+        .bg-pattern { background-image: url('data:image/svg+xml,%3Csvg width="60" height="60" viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg"%3E%3Cg fill="none" fill-rule="evenodd"%3E%3Cg fill="%234f46e5" fill-opacity="0.05"%3E%3Cpath d="M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z"/%3E%3C/g%3E%3C/g%3E%3C/svg%3E'); }
+    </style>
 </head>
-<body class="bg-blue-50 flex items-center justify-center min-h-screen p-4">
+<body class="bg-pattern font-sans">
     
-    <div class="bg-white p-8 rounded-xl shadow-lg w-full max-w-sm border-t-4 border-blue-600">
+    <div class="bg-white p-8 md:p-12 rounded-2xl shadow-xl w-full max-w-md border border-gray-100">
+        
         <div class="text-center mb-8">
-            <h1 class="text-3xl font-bold text-blue-800">TeleAmei 💙</h1>
-            <p class="text-sm text-gray-500 mt-2">Acesso Restrito a Colaboradores</p>
+            <h1 class="text-3xl font-black text-indigo-900 tracking-tight">TeleAmei 💙</h1>
+            <p class="text-sm text-gray-500 mt-2">Plataforma de Gestão Médica</p>
         </div>
 
-        <form id="formLogin" class="space-y-6">
-            <div>
-                <label class="block text-sm font-semibold text-gray-700">E-mail Profissional</label>
-                <input type="email" id="email" required class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500">
-            </div>
-            
-            <div>
-                <label class="block text-sm font-semibold text-gray-700">Senha</label>
-                <input type="password" id="senha" required class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500">
-            </div>
+        <!-- ETAPA 1: SOLICITAR CÓDIGO -->
+        <div id="etapaEmail">
+            <h2 class="text-2xl font-bold text-gray-800 mb-2">Acesse sua conta</h2>
+            <p class="text-sm text-gray-500 mb-6">Digite seu e-mail corporativo para receber o código de verificação.</p>
 
-            <button type="button" id="btnAcessar" onclick="fazerLogin()" class="w-full bg-blue-600 text-white py-3 rounded-md font-bold hover:bg-blue-700 transition duration-300 shadow-md">
-                Acessar Plataforma
-            </button>
-        </form>
-        
-        <div id="mensagemErro" class="hidden mt-4 p-3 bg-red-100 text-red-700 text-sm rounded text-center font-semibold"></div>
+            <form id="formSolicitar" onsubmit="solicitarCodigo(event)">
+                <div class="mb-6">
+                    <input type="email" id="email" placeholder="exemplo@email.com" class="w-full px-4 py-4 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-gray-50 text-gray-800" required>
+                </div>
+                <button type="submit" id="btnSolicitar" class="w-full bg-gray-900 hover:bg-black text-white font-bold py-4 rounded-xl transition shadow-lg flex items-center justify-center gap-2">
+                    Enviar código de verificação
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path></svg>
+                </button>
+            </form>
+        </div>
+
+        <!-- ETAPA 2: VALIDAR CÓDIGO -->
+        <div id="etapaCodigo" class="hidden">
+            <button type="button" onclick="voltarParaEmail()" class="text-sm font-bold text-indigo-600 hover:underline mb-4 flex items-center gap-1">← Voltar</button>
+            <h2 class="text-2xl font-bold text-gray-800 mb-2">Código de verificação</h2>
+            <p class="text-sm text-gray-500 mb-6">Digite o código de 6 dígitos enviado para <br><strong id="emailConfirmacao" class="text-gray-700"></strong></p>
+
+            <form id="formValidar" onsubmit="validarCodigo(event)">
+                <div class="flex gap-2 justify-between mb-8" id="otpContainer">
+                    <input type="text" maxlength="1" class="w-12 h-14 text-center text-2xl font-bold border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-gray-50" required>
+                    <input type="text" maxlength="1" class="w-12 h-14 text-center text-2xl font-bold border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-gray-50" required>
+                    <input type="text" maxlength="1" class="w-12 h-14 text-center text-2xl font-bold border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-gray-50" required>
+                    <input type="text" maxlength="1" class="w-12 h-14 text-center text-2xl font-bold border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-gray-50" required>
+                    <input type="text" maxlength="1" class="w-12 h-14 text-center text-2xl font-bold border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-gray-50" required>
+                    <input type="text" maxlength="1" class="w-12 h-14 text-center text-2xl font-bold border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-gray-50" required>
+                </div>
+                <button type="submit" id="btnValidar" class="w-full bg-gray-900 hover:bg-black text-white font-bold py-4 rounded-xl transition shadow-lg flex items-center justify-center gap-2">
+                    Validar código de acesso
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                </button>
+            </form>
+        </div>
+
+        <!-- MENSAGENS DE ERRO -->
+        <div id="mensagemErro" class="hidden mt-4 text-center text-sm font-bold text-red-600 bg-red-50 py-2 rounded-lg border border-red-200"></div>
+
     </div>
 
     <script>
-        function fazerLogin() {
-            const btn = document.getElementById('btnAcessar');
-            const erroDiv = document.getElementById('mensagemErro');
-            
-            btn.innerText = "Autenticando...";
-            btn.disabled = true;
-            erroDiv.classList.add('hidden');
+        const URL_API = "https://script.google.com/macros/s/AKfycby-1WKshFbFVNfQliUY65_krsep0MnR3HEi6JlYEUG7mSiPVHIwPwRdIlSVnXbVFVQm/exec";
+        
+        // Comportamento inteligente das caixas de OTP
+        const inputs = document.querySelectorAll('#otpContainer input');
+        inputs.forEach((input, index) => {
+            input.addEventListener('keyup', (e) => {
+                if (e.key >= 0 && e.key <= 9) { if (index < 5) inputs[index + 1].focus(); } 
+                else if (e.key === 'Backspace') { if (index > 0) inputs[index - 1].focus(); }
+            });
+        });
 
-            const urlApi = "https://script.google.com/macros/s/AKfycby-1WKshFbFVNfQliUY65_krsep0MnR3HEi6JlYEUG7mSiPVHIwPwRdIlSVnXbVFVQm/exec";
-            const emailDigitado = document.getElementById('email').value.trim().toLowerCase();
+        function mostrarErro(msg) {
+            const el = document.getElementById('mensagemErro');
+            el.innerText = msg; el.classList.remove('hidden');
+            setTimeout(() => el.classList.add('hidden'), 5000);
+        }
 
-            fetch(urlApi + "?acao=listar_usuarios")
-                .then(res => res.json())
-                .then(retorno => {
-                    if (retorno.status === "sucesso") {
-                        const usuario = retorno.dados.find(u => {
-                            const mailBD = (u.email || u.Email || "").trim().toLowerCase();
-                            return mailBD === emailDigitado;
-                        });
-                        
-                        const statusUsuario = usuario ? (usuario.status || usuario.Status || "") : "";
+        function voltarParaEmail() {
+            document.getElementById('etapaCodigo').classList.add('hidden');
+            document.getElementById('etapaEmail').classList.remove('hidden');
+            inputs.forEach(i => i.value = ''); // Limpa código
+        }
 
-                        if (usuario && statusUsuario === "Ativo") {
-                            const usuarioSessao = {
-                                id: usuario.ID_Usuario || usuario.id,
-                                nome: usuario.nome || usuario.Nome_Completo,
-                                email: usuario.email || usuario.Email,
-                                perfil: usuario.perfil || usuario.Perfil
-                            };
-                            
-                            localStorage.setItem("teleamei_sessao", JSON.stringify(usuarioSessao));
-                            
-                            if (usuarioSessao.perfil === "Medico") {
-                                window.location.href = "painel_medico.html";
-                            } else {
-                                window.location.href = "crm_operacoes.html";
-                            }
-                        } else {
-                            erroDiv.innerText = usuario && statusUsuario === "Ausente" 
-                                ? "Usuário marcado como Ausente. Solicite ativação ao Admin." 
-                                : "Acesso Negado. Credenciais inválidas ou usuário inativo.";
-                            erroDiv.classList.remove('hidden');
-                            btn.innerText = "Acessar Plataforma";
-                            btn.disabled = false;
-                        }
+        function solicitarCodigo(e) {
+            e.preventDefault();
+            const email = document.getElementById('email').value.trim();
+            const btn = document.getElementById('btnSolicitar');
+
+            btn.disabled = true; btn.innerHTML = "Aguarde...";
+
+            fetch(URL_API, {
+                method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                body: JSON.stringify({ acao: "solicitar_codigo", email: email })
+            }).then(() => {
+                // Como o no-cors é opaco, avançamos a tela assumindo sucesso do script
+                document.getElementById('etapaEmail').classList.add('hidden');
+                document.getElementById('etapaCodigo').classList.remove('hidden');
+                document.getElementById('emailConfirmacao').innerText = email;
+                inputs[0].focus();
+            }).finally(() => {
+                btn.disabled = false; btn.innerHTML = 'Enviar código de verificação <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path></svg>';
+            });
+        }
+
+        function validarCodigo(e) {
+            e.preventDefault();
+            const email = document.getElementById('email').value.trim();
+            let codigo = "";
+            inputs.forEach(i => codigo += i.value);
+
+            if(codigo.length < 6) return mostrarErro("Preencha os 6 dígitos.");
+
+            const btn = document.getElementById('btnValidar');
+            btn.disabled = true; btn.innerHTML = "Verificando...";
+
+            fetch(URL_API + "?acao=listar_usuarios").then(res => res.json()).then(res => {
+                if(res.status === "sucesso") {
+                    const usr = res.dados.find(u => String(u.Email || u.email).toLowerCase().trim() === email.toLowerCase());
+                    
+                    if(!usr) { mostrarErro("E-mail não encontrado."); voltarParaEmail(); return; }
+
+                    const otpSalvo = String(usr.Codigo_OTP || "").trim();
+                    const expSalvo = new Date(usr.Expiracao_OTP || 0);
+
+                    if(codigo !== otpSalvo) {
+                        mostrarErro("Código incorreto. Tente novamente.");
+                        inputs.forEach(i => i.value = ''); inputs[0].focus();
+                    } else if (new Date() > expSalvo) {
+                        mostrarErro("Este código expirou. Solicite um novo.");
+                        voltarParaEmail();
+                    } else {
+                        // SUCESSO ABSOLUTO! (Grava Carimbo de Tempo para trava de 24h)
+                        const perfil = usr.Perfil || usr.perfil;
+                        localStorage.setItem("teleamei_sessao", JSON.stringify({
+                            nome: usr.Nome_Completo || usr.nome,
+                            email: email,
+                            perfil: perfil,
+                            timestamp: Date.now() // A mágica da Trava 360º acontece aqui!
+                        }));
+
+                        if (perfil === "Admin") window.location.href = "crm_operacoes.html";
+                        else if (perfil === "Usuario") window.location.href = "crm_operacoes.html";
+                        else window.location.href = "painel_medico.html";
                     }
-                })
-                .catch(() => {
-                    erroDiv.innerText = "Falha de conexão com a API.";
-                    erroDiv.classList.remove('hidden');
-                    btn.innerText = "Acessar Plataforma";
-                    btn.disabled = false;
-                });
+                } else { mostrarErro("Erro de comunicação com o servidor."); }
+            }).finally(() => {
+                btn.disabled = false; btn.innerHTML = 'Validar código de acesso <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>';
+            });
         }
     </script>
 </body>

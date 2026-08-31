@@ -8,80 +8,58 @@
 </head>
 <body class="bg-gray-100 min-h-screen p-4 md:p-8">
     
-    <!-- HEADER -->
     <div class="max-w-4xl mx-auto flex justify-between items-center mb-6 bg-indigo-900 text-white p-4 rounded-lg shadow">
         <div class="font-bold text-lg">TeleAmei 💙 | Gestão e Comunicação</div>
         <button onclick="window.location.href='crm_operacoes.html'" class="bg-indigo-600 hover:bg-indigo-700 px-4 py-2 rounded text-sm font-bold shadow transition">Voltar ao CRM</button>
     </div>
 
-    <!-- MÓDULO 1: COMUNICADOS (CHAT PARA OPERAÇÃO) -->
+    <!-- MÓDULO 1: COMUNICADOS -->
     <div class="max-w-4xl mx-auto bg-white p-6 md:p-8 rounded-xl shadow-lg border-t-4 border-blue-600 mb-8">
         <div class="flex items-center space-x-2 mb-6">
             <span class="text-2xl">📢</span>
             <h2 class="text-xl font-bold text-blue-900">Disparar Comunicado para a Operação</h2>
         </div>
-        <p class="text-sm text-gray-500 mb-4">Esta mensagem aparecerá como um alerta bloqueante na tela de todos os operadores e médicos até que eles confirmem a leitura.</p>
-        
         <form id="formComunicado" class="space-y-4">
-            <div>
-                <label class="block text-sm font-bold text-gray-700">Título do Aviso <span class="text-red-500">*</span></label>
-                <input type="text" id="tituloComunicado" placeholder="Ex: Nova regra de atendimento" class="mt-1 w-full p-3 border rounded bg-blue-50 focus:ring-2 focus:ring-blue-400 outline-none" required>
-            </div>
-            <div>
-                <label class="block text-sm font-bold text-gray-700">Mensagem <span class="text-red-500">*</span></label>
-                <textarea id="mensagemComunicado" rows="3" placeholder="Escreva o comunicado aqui..." class="mt-1 w-full p-3 border rounded bg-blue-50 focus:ring-2 focus:ring-blue-400 outline-none" required></textarea>
-            </div>
-            <button type="button" id="btnEnviarComunicado" onclick="enviarComunicado()" class="w-full md:w-auto bg-blue-600 text-white font-bold py-3 px-8 rounded shadow hover:bg-blue-700 transition uppercase text-sm">
-                Disparar Comunicado
-            </button>
+            <div><label class="block text-sm font-bold text-gray-700">Título do Aviso <span class="text-red-500">*</span></label><input type="text" id="tituloComunicado" class="mt-1 w-full p-3 border rounded bg-blue-50" required></div>
+            <div><label class="block text-sm font-bold text-gray-700">Mensagem <span class="text-red-500">*</span></label><textarea id="mensagemComunicado" rows="3" class="mt-1 w-full p-3 border rounded bg-blue-50" required></textarea></div>
+            <button type="button" id="btnEnviarComunicado" onclick="enviarComunicado()" class="bg-blue-600 text-white font-bold py-3 px-8 rounded shadow hover:bg-blue-700 transition uppercase text-sm">Disparar Comunicado</button>
         </form>
     </div>
 
-    <!-- MÓDULO 2: CADASTRO DE COLABORADORES -->
+    <!-- MÓDULO 2: CADASTRO DE COLABORADORES (SEM SENHA) -->
     <div class="max-w-4xl mx-auto bg-white p-6 md:p-8 rounded-xl shadow-lg border-t-4 border-emerald-600">
         <h2 class="text-xl font-bold text-emerald-900 mb-6">Cadastrar Novo Colaborador</h2>
-        
         <form id="formUsuario" class="space-y-6">
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div><label class="block text-sm font-bold text-gray-700">Nome Completo <span class="text-red-500">*</span></label><input type="text" id="nomeUsuario" class="mt-1 w-full p-3 border rounded bg-gray-50" required></div>
                 <div><label class="block text-sm font-bold text-gray-700">E-mail (Login) <span class="text-red-500">*</span></label><input type="email" id="emailUsuario" class="mt-1 w-full p-3 border rounded bg-gray-50" required></div>
                 <div><label class="block text-sm font-bold text-gray-700">Telefone / WhatsApp <span class="text-red-500">*</span></label><input type="text" id="telefoneUsuario" class="mt-1 w-full p-3 border rounded bg-gray-50" required></div>
-                <div><label class="block text-sm font-bold text-gray-700">Senha de Acesso <span class="text-red-500">*</span></label><input type="password" id="senhaUsuario" class="mt-1 w-full p-3 border rounded bg-gray-50" required></div>
             </div>
-
             <div class="border-t border-gray-200 pt-4">
                 <label class="block text-sm font-bold text-gray-700 mb-2">Perfil de Acesso <span class="text-red-500">*</span></label>
                 <select id="perfilUsuario" onchange="verificarPerfil()" class="w-full md:w-1/3 p-3 border rounded bg-white font-bold text-indigo-900" required>
-                    <option value="">Selecione...</option>
-                    <option value="Admin">Administrador (Acesso Total)</option>
-                    <option value="Usuario">Operador (CRM)</option>
-                    <option value="Medico">Médico (Prontuário)</option>
+                    <option value="">Selecione...</option><option value="Admin">Administrador (Acesso Total)</option><option value="Usuario">Operador (CRM)</option><option value="Medico">Médico (Prontuário)</option>
                 </select>
             </div>
-
-            <!-- BLOCO DE UNIDADES (OBRIGATÓRIO E MÚLTIPLO) -->
+            <!-- UNIDADES -->
             <div class="border-t border-gray-200 pt-4 bg-emerald-50 p-4 rounded-lg border border-emerald-200">
-                <label class="block text-sm font-bold text-emerald-900 mb-3">Unidades de Atendimento (Selecione 1 ou mais) <span class="text-red-500">*</span></label>
+                <label class="block text-sm font-bold text-emerald-900 mb-3">Unidades de Atendimento <span class="text-red-500">*</span></label>
                 <div class="grid grid-cols-2 md:grid-cols-3 gap-3">
-                    <label class="flex items-center space-x-2 bg-white p-2 rounded border border-gray-300 shadow-sm cursor-pointer"><input type="checkbox" value="Barretos" class="chk-unidade w-4 h-4 text-emerald-600"> <span class="text-sm font-bold">Barretos</span></label>
-                    <label class="flex items-center space-x-2 bg-white p-2 rounded border border-gray-300 shadow-sm cursor-pointer"><input type="checkbox" value="Campinas" class="chk-unidade w-4 h-4 text-emerald-600"> <span class="text-sm font-bold">Campinas</span></label>
-                    <label class="flex items-center space-x-2 bg-white p-2 rounded border border-gray-300 shadow-sm cursor-pointer"><input type="checkbox" value="Campinas Sudoeste" class="chk-unidade w-4 h-4 text-emerald-600"> <span class="text-sm font-bold">Camp. Sudoeste</span></label>
-                    <label class="flex items-center space-x-2 bg-white p-2 rounded border border-gray-300 shadow-sm cursor-pointer"><input type="checkbox" value="Camaragibe" class="chk-unidade w-4 h-4 text-emerald-600"> <span class="text-sm font-bold">Camaragibe</span></label>
-                    <label class="flex items-center space-x-2 bg-white p-2 rounded border border-gray-300 shadow-sm cursor-pointer"><input type="checkbox" value="Cotia" class="chk-unidade w-4 h-4 text-emerald-600"> <span class="text-sm font-bold">Cotia</span></label>
+                    <label class="flex items-center space-x-2 bg-white p-2 rounded border border-gray-300 cursor-pointer"><input type="checkbox" value="Barretos" class="chk-unidade w-4 h-4 text-emerald-600"> <span class="text-sm font-bold">Barretos</span></label>
+                    <label class="flex items-center space-x-2 bg-white p-2 rounded border border-gray-300 cursor-pointer"><input type="checkbox" value="Campinas" class="chk-unidade w-4 h-4 text-emerald-600"> <span class="text-sm font-bold">Campinas</span></label>
+                    <label class="flex items-center space-x-2 bg-white p-2 rounded border border-gray-300 cursor-pointer"><input type="checkbox" value="Campinas Sudoeste" class="chk-unidade w-4 h-4 text-emerald-600"> <span class="text-sm font-bold">Camp. Sudoeste</span></label>
+                    <label class="flex items-center space-x-2 bg-white p-2 rounded border border-gray-300 cursor-pointer"><input type="checkbox" value="Camaragibe" class="chk-unidade w-4 h-4 text-emerald-600"> <span class="text-sm font-bold">Camaragibe</span></label>
+                    <label class="flex items-center space-x-2 bg-white p-2 rounded border border-gray-300 cursor-pointer"><input type="checkbox" value="Cotia" class="chk-unidade w-4 h-4 text-emerald-600"> <span class="text-sm font-bold">Cotia</span></label>
                 </div>
             </div>
-
+            <!-- MEDICO -->
             <div id="blocoMedico" class="hidden border-t border-blue-200 pt-4 bg-blue-50 p-4 rounded-lg">
-                <h3 class="text-sm font-bold text-blue-900 mb-3">Dados Médicos</h3>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div><label class="block text-xs font-bold text-gray-700">CRM</label><input type="text" id="crmMedico" class="mt-1 w-full p-2 border rounded bg-white"></div>
                     <div><label class="block text-xs font-bold text-gray-700">Especialidade Principal</label><input type="text" id="especialidadeMedico" class="mt-1 w-full p-2 border rounded bg-white"></div>
                 </div>
             </div>
-
-            <button type="button" id="btnSalvarUsuario" onclick="salvarUsuario()" class="w-full bg-emerald-600 text-white font-bold py-4 rounded-xl shadow-lg hover:bg-emerald-700 transition uppercase text-lg mt-4">
-                Gravar Colaborador
-            </button>
+            <button type="button" id="btnSalvarUsuario" onclick="salvarUsuario()" class="w-full bg-emerald-600 text-white font-bold py-4 rounded-xl shadow-lg hover:bg-emerald-700 transition uppercase text-lg mt-4">Gravar Colaborador</button>
         </form>
     </div>
 
@@ -90,93 +68,40 @@
         let usuarioLogado = null;
 
         window.onload = function() {
-            const sessao = localStorage.getItem("teleamei_sessao");
-            if (!sessao || JSON.parse(sessao).perfil !== "Admin") {
-                alert("Acesso negado. Apenas Administradores."); 
-                window.location.href = "login.html";
-                return;
+            const sessaoStr = localStorage.getItem("teleamei_sessao");
+            if (!sessaoStr) { window.location.href = "login.html"; return; }
+            
+            const sessao = JSON.parse(sessaoStr);
+            const limiteHoras = 24 * 60 * 60 * 1000; 
+            if (!sessao.timestamp || (Date.now() - sessao.timestamp > limiteHoras)) {
+                localStorage.removeItem("teleamei_sessao"); alert("Sessão expirada (24h)."); window.location.href = "login.html"; return;
             }
-            usuarioLogado = JSON.parse(sessao);
+            if (sessao.perfil !== "Admin") { alert("Acesso negado."); window.location.href = "login.html"; return; }
+            usuarioLogado = sessao;
         };
 
-        // --- MÓDULO DE COMUNICADOS ---
         function enviarComunicado() {
             const titulo = document.getElementById('tituloComunicado').value.trim();
             const mensagem = document.getElementById('mensagemComunicado').value.trim();
-
-            if (!titulo || !mensagem) {
-                return alert("❌ Preencha o título e a mensagem do comunicado.");
-            }
-
-            const payload = {
-                acao: "criar_comunicado",
-                titulo: titulo,
-                mensagem: mensagem,
-                autor: usuarioLogado.nome
-            };
-
-            const btn = document.getElementById('btnEnviarComunicado');
-            btn.innerText = "Enviando..."; btn.disabled = true;
-
-            fetch(URL_API, {
-                method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-                body: JSON.stringify(payload)
-            }).then(() => {
-                alert("✅ Comunicado disparado com sucesso para toda a equipe!");
-                document.getElementById('formComunicado').reset();
-            }).finally(() => {
-                btn.innerText = "Disparar Comunicado"; btn.disabled = false;
-            });
+            if (!titulo || !mensagem) return alert("❌ Preencha título e mensagem.");
+            const btn = document.getElementById('btnEnviarComunicado'); btn.innerText = "Enviando..."; btn.disabled = true;
+            fetch(URL_API, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify({ acao: "criar_comunicado", titulo: titulo, mensagem: mensagem, autor: usuarioLogado.nome }) }).then(() => { alert("✅ Comunicado disparado!"); document.getElementById('formComunicado').reset(); }).finally(() => { btn.innerText = "Disparar Comunicado"; btn.disabled = false; });
         }
 
-        // --- MÓDULO DE USUÁRIOS ---
-        function verificarPerfil() {
-            const perfil = document.getElementById('perfilUsuario').value;
-            if (perfil === "Medico") document.getElementById('blocoMedico').classList.remove('hidden');
-            else document.getElementById('blocoMedico').classList.add('hidden');
-        }
+        function verificarPerfil() { document.getElementById('blocoMedico').classList.toggle('hidden', document.getElementById('perfilUsuario').value !== "Medico"); }
 
         function salvarUsuario() {
             const nome = document.getElementById('nomeUsuario').value.trim();
             const email = document.getElementById('emailUsuario').value.trim();
             const telefone = document.getElementById('telefoneUsuario').value.trim();
-            const senha = document.getElementById('senhaUsuario').value.trim();
             const perfil = document.getElementById('perfilUsuario').value;
-
-            if (!nome || !email || !telefone || !senha || !perfil) {
-                return alert("❌ Preencha todos os campos obrigatórios (*).");
-            }
-
+            if (!nome || !email || !telefone || !perfil) return alert("❌ Preencha todos os campos obrigatórios (*).");
             const unidadesSelecionadas = Array.from(document.querySelectorAll('.chk-unidade:checked')).map(cb => cb.value);
-            if (unidadesSelecionadas.length === 0) {
-                return alert("❌ Selecione pelo menos UMA unidade de atendimento!");
-            }
+            if (unidadesSelecionadas.length === 0) return alert("❌ Selecione pelo menos UMA unidade!");
 
-            const payload = {
-                acao: "criar_usuario",
-                nome: nome,
-                email: email,
-                telefone: telefone,
-                senha: senha,
-                perfil: perfil,
-                unidades: unidadesSelecionadas,
-                crm: perfil === "Medico" ? document.getElementById('crmMedico').value : "",
-                especialidades: perfil === "Medico" ? [document.getElementById('especialidadeMedico').value] : []
-            };
-
-            const btn = document.getElementById('btnSalvarUsuario');
-            btn.innerText = "Gravando..."; btn.disabled = true;
-
-            fetch(URL_API, {
-                method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-                body: JSON.stringify(payload)
-            }).then(() => {
-                alert("✅ Colaborador cadastrado com sucesso!");
-                document.getElementById('formUsuario').reset();
-                verificarPerfil();
-            }).finally(() => {
-                btn.innerText = "Gravar Colaborador"; btn.disabled = false;
-            });
+            const payload = { acao: "criar_usuario", nome: nome, email: email, telefone: telefone, perfil: perfil, unidades: unidadesSelecionadas, crm: perfil === "Medico" ? document.getElementById('crmMedico').value : "", especialidades: perfil === "Medico" ? [document.getElementById('especialidadeMedico').value] : [] };
+            const btn = document.getElementById('btnSalvarUsuario'); btn.innerText = "Gravando..."; btn.disabled = true;
+            fetch(URL_API, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(payload) }).then(() => { alert("✅ Colaborador cadastrado! Um e-mail de acesso foi enviado a ele."); document.getElementById('formUsuario').reset(); verificarPerfil(); }).finally(() => { btn.innerText = "Gravar Colaborador"; btn.disabled = false; });
         }
     </script>
 </body>
