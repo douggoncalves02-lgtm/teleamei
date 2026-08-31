@@ -121,7 +121,7 @@
 
     <script>
         const URL_API = "https://script.google.com/macros/s/AKfycby-1WKshFbFVNfQliUY65_krsep0MnR3HEi6JlYEUG7mSiPVHIwPwRdIlSVnXbVFVQm/exec";
-        let usuarioLogado = null; let idEdicao = null; let anexosGlobais = []; let alertaDisparado = false;
+        let usuarioLogado = null; let idEdicao = null; let anexosGlobais = [];
 
         const OmnichannelService = {
             executarEnvio: function(telefone, mensagem) {
@@ -206,11 +206,9 @@
                     selectMed.innerHTML = '<option value="">Selecione o Médico...</option>';
                     selectUnd.innerHTML = '<option value="">Selecione a Unidade...</option>';
                     
-                    // Injeta as Unidades Base Padrão para nunca ficar vazio
                     const setUnd = new Set(['Barretos', 'Cotia', 'Campinas', 'Camaragibe', 'Campinas Sudoeste']);
                     
                     retorno.dados.forEach(u => {
-                        // Varre a base para adicionar outras unidades extras que possam existir
                         const unds = u.Unidades_Vinculadas || u.unidades || u.Unidades || "";
                         if (unds) unds.split(',').forEach(un => { if (un.trim() !== "") setUnd.add(un.trim()); });
                         
@@ -227,7 +225,6 @@
                         }
                     });
 
-                    // Renderiza as unidades em ordem alfabética
                     Array.from(setUnd).sort().forEach(un => {
                         const op = document.createElement('option');
                         op.value = un; op.innerText = un;
@@ -237,12 +234,9 @@
             });
         }
 
-        // LEITURA BLINDADA EXPANDIDA
         function lerValor(obj, possiveisChaves) {
             const normalizedObj = {};
-            for (let key in obj) {
-                normalizedObj[key.toLowerCase().trim()] = obj[key];
-            }
+            for (let key in obj) { normalizedObj[key.toLowerCase().trim()] = obj[key]; }
             for (let chave of possiveisChaves) {
                 if (normalizedObj[chave] !== undefined && normalizedObj[chave] !== null && normalizedObj[chave] !== "") {
                     return normalizedObj[chave];
@@ -264,21 +258,25 @@
         }
 
         function preencherFormulario(dados) {
-            document.getElementById('nomePaciente').value = lerValor(dados, ['paciente', 'nome', 'nome_paciente', 'nome paciente']);
+            document.getElementById('nomePaciente').value = lerValor(dados, ['paciente', 'nome', 'nome_paciente']);
             document.getElementById('telefonePaciente').value = lerValor(dados, ['telefone', 'whatsapp', 'contato']);
-            document.getElementById('especialidadeAgendada').value = lerValor(dados, ['especialidade', 'especialidade_solicitada', 'especialidade solicitada']);
+            document.getElementById('especialidadeAgendada').value = lerValor(dados, ['especialidade', 'especialidade_solicitada']);
             
             document.getElementById('dataAgendada').value = lerValor(dados, ['data_agendada', 'data agendada', 'data']);
             document.getElementById('horaAgendada').value = lerValor(dados, ['hora_agendada', 'hora agendada', 'hora']);
-            document.getElementById('linkMeet').value = lerValor(dados, ['link_meet', 'link google meet', 'link meet', 'meet']);
+            document.getElementById('linkMeet').value = lerValor(dados, ['link_meet', 'link google meet', 'meet']);
             
             document.getElementById('valorConsulta').value = lerValor(dados, ['valor_consulta', 'valor consulta', 'valor']);
             document.getElementById('orcamentoTotal').value = lerValor(dados, ['total_exames', 'total exames', 'exames']);
             document.getElementById('orcamentoCusto').value = lerValor(dados, ['custo_exames', 'custo exames', 'custo']);
             
+            // Leitura dos novos campos de Data de Exame e Status do Médico
+            document.getElementById('dataExame').value = lerValor(dados, ['data_exame', 'data exame']);
+            const statusMedBD = lerValor(dados, ['status_medico', 'status medico']);
+            if(statusMedBD) document.getElementById('statusMedico').value = statusMedBD;
+
             const statusAtual = lerValor(dados, ['status_consulta', 'status consulta', 'status']) || "Aguardando agendamento";
             document.getElementById('statusOperacao').value = statusAtual;
-            if (statusAtual === "sim" || statusAtual === "nao") document.getElementById('statusMedico').value = statusAtual;
 
             const anexoBruto = lerValor(dados, ['link_anexo', 'link anexo', 'anexo']);
             anexosGlobais = [];
@@ -361,15 +359,18 @@
         }
 
         function salvarDados() {
-            let statusFinal = usuarioLogado.perfil === "Medico" ? document.getElementById('statusMedico').value : document.getElementById('statusOperacao').value;
+            let statusOp = document.getElementById('statusOperacao').value;
+            let statusMed = document.getElementById('statusMedico').value;
             const dataConsulta = document.getElementById('dataAgendada').value;
             const horaConsulta = document.getElementById('horaAgendada').value;
             const linkMeet = document.getElementById('linkMeet').value;
 
-            if (usuarioLogado.perfil === "Medico" && !statusFinal) { alert("❌ Informe se a consulta foi realizada."); return; }
+            if (usuarioLogado.perfil === "Medico" && !statusMed) { alert("❌ Informe se a consulta foi realizada."); return; }
             if ((dataConsulta || horaConsulta) && !linkMeet) { alert("⚠️ O Link do Google Meet é obrigatório ao definir data e hora."); return; }
 
-            if (statusFinal === "Aguardando agendamento" && dataConsulta && horaConsulta && linkMeet) statusFinal = "Agendado";
+            // Lógicas Inteligentes de Status (360º)
+            if (statusOp === "Aguardando agendamento" && dataConsulta && horaConsulta && linkMeet) statusOp = "Agendado";
+            if (usuarioLogado.perfil === "Medico" && statusMed === "sim") statusOp = "Concluído";
 
             const payload = {
                 paciente: document.getElementById('nomePaciente').value,
@@ -383,10 +384,13 @@
                 valorConsulta: parseFloat(document.getElementById('valorConsulta').value) || 0,
                 totalExames: parseFloat(document.getElementById('orcamentoTotal').value) || 0,
                 custoExames: parseFloat(document.getElementById('orcamentoCusto').value) || 0,
-                statusConsulta: statusFinal,
+                dataExame: document.getElementById('dataExame').value,
+                statusConsulta: statusOp,
+                statusMedico: statusMed,
                 anexosAtuais: anexosGlobais,
                 operadorResponsavel: usuarioLogado.nome
             };
+            
             if (idEdicao) { payload.acao = "atualizar_registro"; payload.id_registro = idEdicao; }
 
             const btn = document.getElementById('btnSalvar');
